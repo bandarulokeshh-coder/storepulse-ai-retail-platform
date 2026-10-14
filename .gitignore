@@ -1,0 +1,101 @@
+# ============================================================
+# StorePulse AI — Retail Intelligence Platform
+# GitHub ignore rules
+# ============================================================
+
+# ---------- Python ----------
+.venv/
+venv/
+_env/
+env/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+.pydantic_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.db
+
+# ---------- Node / Next.js ----------
+node_modules/
+.next/
+.next-env.d.ts
+build/
+out/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.json
+.cache/
+.vercel/
+.netlify/
+draft-next-env.d.ts
+
+# ---------- Streamlit ----------
+*.log
+streamlit_run.log
+streamlit_err.log
+
+# ---------- VS Code ----------
+.vscode/
+*.code-workspace
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ---------- Environment / secrets ----------
+.env
+.env.*
+*.pem
+*.key
+*.p12
+credentials.json
+db_credentials.json
+
+# ---------- Generated demo artifacts (regenerate as needed) ----------
+brag-output/
+
+# ---------- OS ----------
+.Temporary Items
+$RECYCLE.BIN/
