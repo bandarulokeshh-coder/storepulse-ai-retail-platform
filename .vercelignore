@@ -1,0 +1,51 @@
+# Vercel ignore — ship only the Next.js app + its configs
+# (Python app, venv, data, tests, and generated artifacts stay local)
+
+# Python runtime / venv
+.venv/
+venv/
+env/
+_env/
+__pycache__/
+*.py[cod]
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+.coverage.*
+
+# Python source & scripts (not needed for the Next.js build)
+app.py
+gen_pdf.py
+generate_script_pdf.py
+src/*.py
+requirements.txt
+
+# Data & generated artifacts
+data/
+tests/
+assets/
+config/
+brag-output/
+*.log
+streamlit_*.log
+streamlit_err.log
+streamlit_run.log
+
+# Node build output
+.next/
+node_modules/
+
+# Agent / editor / OS
+.claude/
+.agents/
+.vscode/
+*.code-workspace
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.*

@@ -99,3 +99,5 @@ brag-output/
 # ---------- OS ----------
 .Temporary Items
 $RECYCLE.BIN/
+.vercel
+.env*
