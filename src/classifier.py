@@ -90,10 +90,17 @@ class FeedbackAnalyzer:
         self.model_bundle = ModelBundle()
         self.use_embeddings = use_embeddings
         self._embed_prototypes: dict[str, np.ndarray] | None = None
+        self._force_mode: str | None = None  # "rule", "ml", "hybrid" or None (auto)
 
     def set_use_embeddings(self, enabled: bool) -> None:
         """Enable/disable multilingual embedding assistance (falls back to rules if unavailable)."""
         self.use_embeddings = bool(enabled)
+
+    def set_classifier_mode(self, mode: str | None) -> None:
+        """Force classifier to use specific mode: 'rule', 'ml', or 'hybrid' (default: None = auto)."""
+        if mode not in (None, "rule", "ml", "hybrid"):
+            raise ValueError(f"Invalid mode: {mode}. Use 'rule', 'ml', 'hybrid', or None")
+        self._force_mode = mode
 
     def reload_taxonomy(self) -> None:
         """Re-read the issue taxonomy after a configuration update."""
@@ -277,7 +284,21 @@ class FeedbackAnalyzer:
             except Exception:
                 used_model = False
 
-        if (
+        # Force mode override for evaluation
+        if self._force_mode == "rule":
+            issue_category = rule_category
+            confidence = rule_confidence
+            method = "rule_only"
+        elif self._force_mode == "ml" and used_model and model_category:
+            issue_category = model_category
+            confidence = model_confidence
+            method = "ml_only"
+        elif self._force_mode == "ml":
+            # ML requested but not available, fall back to rule
+            issue_category = rule_category
+            confidence = rule_confidence
+            method = "rule_based"
+        elif (
             rule_category == GENERAL_FEEDBACK_CATEGORY
             and embed_category
             and embed_similarity is not None
