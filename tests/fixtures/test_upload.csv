@@ -1,0 +1,8 @@
+feedback_id,feedback_text,store_id,region,timestamp,channel
+fb_001,Freezer not working and milk is spoiling,TEST_STORE_001,North,2026-10-20 14:30:00,In-Store
+fb_002,Washroom is very dirty and smells bad,TEST_STORE_001,North,2026-10-21 09:15:00,In-Store
+fb_003,Staff member was rude to customer,TEST_STORE_002,South,2026-10-22 16:45:00,App
+fb_004,,TEST_STORE_003,East,2026-10-23 10:00:00,In-Store
+fb_005,Great service and clean store,TEST_STORE_001,North,2026-10-24 12:30:00,Website
+fb_006,Payment terminal not accepting cards,TEST_STORE_004,West,invalid_date,In-Store
+fb_007,Found expired product on shelf,TEST_STORE_002,South,2026-10-25 08:00:00,In-Store
