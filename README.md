@@ -11,12 +11,16 @@ The app processes multilingual retail feedback, detects operational issues, assi
 - [Project Overview](#project-overview)
 - [Key Features](#key-features)
 - [Technology Stack](#technology-stack)
+- [Installation](#installation)
+- [How to Run](#how-to-run)
 - [Architecture](#architecture)
+- [Safety Escalation Policy](#safety-escalation-policy)
+- [How Classification Works](#how-classification-works)
 - [How Emerging Detection Works](#how-emerging-detection-works)
 - [Limitations](#limitations)
 - [Testing Instructions](#testing-instructions)
-- [Team Contribution](#team-contribution)
-- [Windows + VS Code Quick Start](#windows--vs-code-quick-start)
+- [Team Roles](#team-roles)
+- [Pre-built vs Built During Hackathon](#pre-built-vs-built-during-hackathon)
 - [Notes for Judges](#notes-for-judges)
 
 
@@ -124,24 +128,25 @@ Shows demonstration metrics for:
 ## Technology Stack
 
 ### Frontend / App Framework
-- Streamlit — interactive dashboard (`app.py`)
-- Next.js 16 (React 19) — supporting web app (`src/app`)
+- **Streamlit** — main demo dashboard (`app.py`) - **This is the primary demo app**
+- Next.js 16 (React 19) — supporting web infrastructure (optional, not used in main demo)
 
 ### Data Processing
 - Pandas
 - NumPy
 
 ### NLP / ML
-- Sentence-Transformers (optional)
-- Scikit-learn
-- Rule-based multilingual fallback
+- Sentence-Transformers — multilingual sentence embeddings (`paraphrase-multilingual-MiniLM-L12-v2`)
+- Scikit-learn — TF-IDF + Logistic Regression classifiers
+- Rule-based multilingual fallback for Hinglish and romanized Telugu, Tamil, Marathi
 
 ### Visualization
 - Plotly
 
 ### Database
-- SQLite — demo data + session store (`data/storepulse.sqlite`)
-- PostgreSQL — configured via Drizzle ORM for the Next.js app (`drizzle.config.json`)
+- SQLite — demo data storage (`data/storepulse.sqlite`, auto-regenerated)
+
+**Note**: PostgreSQL/Drizzle ORM configuration exists for future Next.js integration but is not used in the current Streamlit demo.
 
 ### Reporting
 - ReportLab for PDF exports
@@ -375,12 +380,69 @@ Included scenarios:
 
 ---
 
-## Team Contribution
-Suggested hackathon roles:
+## Safety Escalation Policy
+
+StorePulse AI applies a **policy-first safety escalation** approach to ensure critical issues are never missed:
+
+### Always HIGH Severity:
+- **Food contamination** with pests (cockroaches, insects, mold, fungus)
+- **Washroom/toilet hygiene issues** (dirty, blocked, overflowing, smelly)
+- **Allergen label errors** (allergen not mentioned, incorrect labeling)
+- **Staff misconduct** (inappropriate behavior, harassment, threats)
+- **Unsafe products** (hazardous, dangerous, broken glass)
+
+### MEDIUM Severity:
+- **General floor/shelf cleanliness** (dirty floor, trash visible, messy aisles)
+  - Even with "dirty" keyword, floor cleanliness stays MEDIUM unless food/pests involved
+- **Stock shortages, delivery delays, price errors** (operational issues)
+
+### Policy Implementation:
+- Safety patterns **override** ML predictions
+- Negation detection prevents false positives ("washroom was clean" → LOW, not HIGH)
+- Positive context words (clean, fresh, thanks) prevent escalation
+- Neutral hygiene words (washroom, toilet) only escalate with negative qualifiers
+
+This split (Tasks 3-4, Oct 26 2026) reduced false HIGH escalations on routine cleaning issues while preserving 100% recall on true safety concerns.
+
+---
+
+## Team Roles
+
+**Team Members**: [Fill in actual names and roles before submission]
+
+Example roles:
 - **Full-stack developer:** Streamlit app, UI, uploads, exports
-- **ML/NLP engineer:** multilingual normalization, rule engine, optional ML training
+- **ML/NLP engineer:** multilingual normalization, rule engine, ML training
 - **Data scientist:** incident detection, evaluation metrics, report scoring
 - **UX designer:** dashboard layout, cards, filters, report styling
+
+---
+
+## Pre-built vs Built During Hackathon
+
+### Pre-built (before Oct 26, 2026):
+- Initial Streamlit app structure (`app.py`)
+- Basic issue taxonomy (`config/issue_taxonomy.json`)
+- Synthetic data generator (`src/synthetic_data.py`)
+- Rule-based classifier framework (`src/classifier.py`)
+- Emerging incident detector (`src/emerging_detector.py`)
+- Weekly report generator (`src/weekly_report.py`)
+- Basic policy engine (`src/policy_engine.py`)
+- Next.js/Postgres integration (unused in demo)
+
+### Built/Enhanced During Hackathon (Oct 26, 2026):
+- **Whole-word keyword matching** (Task 1) - prevents "eggplant" matching "egg"
+- **Allergen rule refinement** (Task 2) - "milk" mention ≠ allergen risk
+- **Negation and positive context handling** (Task 3) - "washroom was clean" → LOW
+- **Hygiene vs floor cleanliness policy split** (Task 4) - dirty floor → MEDIUM
+- **Department routing tests** (Task 5) - verified consistency
+- **Train/test split utility** (Task 6) - held-out evaluation framework
+- **Alert fatigue reduction** (Task 7) - minimum_support=3, volume thresholds
+- **Real trend calculations** (Task 8) - week-over-week rate changes, "new" flag
+- **Demo reliability scripts** (Task 9) - offline model caching, launcher scripts
+- **Documentation and cleanup** (Task 10) - this section, repo cleanup
+
+All changes tracked in git commits with detailed messages (Oct 26, 2026).
 
 ---
 

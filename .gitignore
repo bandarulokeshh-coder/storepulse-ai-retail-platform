@@ -95,6 +95,13 @@ db_credentials.json
 
 # ---------- Generated demo artifacts (regenerate as needed) ----------
 brag-output/
+data/storepulse_report_*.csv
+data/storepulse_report_*.pdf
+data/storepulse.sqlite
+
+# ---------- Claude Code artifacts ----------
+.agents/
+.claude/
 
 # ---------- OS ----------
 .Temporary Items
