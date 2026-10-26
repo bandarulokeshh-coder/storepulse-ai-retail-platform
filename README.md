@@ -344,7 +344,10 @@ The detector compares the current week against the previous 4–6 weeks using a 
 
 ## Limitations
 - The default demo dataset is synthetic and clearly labeled as such.
+- **Synthetic labels were updated on Oct 26, 2026** to align with the refined safety escalation policy: 301 Store Cleanliness rows changed from HIGH to MEDIUM. See `data/LABEL_CHANGES.md` for details.
+- **Improved escalation precision reflects this label correction**, not a model improvement. The policy now correctly distinguishes washroom hygiene (HIGH) from floor cleanliness (MEDIUM).
 - Rule-based classification is transparent but less powerful than a fully trained multilingual model.
+- Multilingual support covers common Hinglish and romanized Indian languages, but some transliterated words (e.g., Hindi "kharab", Tamil "alukku") are not yet in keyword lists.
 - Optional sentence-transformers support depends on local installation and model availability.
 - Some evaluation results are demo-only unless real ground-truth labels are uploaded.
 - Duplicate detection is heuristic and intended for operations review, not automatic merging.
@@ -420,29 +423,42 @@ Example roles:
 
 ## Pre-built vs Built During Hackathon
 
-### Pre-built (before Oct 26, 2026):
+### Pre-built (before Oct 30, 2026):
+**All work done on Oct 26, 2026 counts as PRE-BUILT preparation**, not hackathon work.
+
 - Initial Streamlit app structure (`app.py`)
 - Basic issue taxonomy (`config/issue_taxonomy.json`)
-- Synthetic data generator (`src/synthetic_data.py`)
+- Synthetic data generator (`src/synthetic_data.py`) - 11,794 rows
 - Rule-based classifier framework (`src/classifier.py`)
 - Emerging incident detector (`src/emerging_detector.py`)
 - Weekly report generator (`src/weekly_report.py`)
 - Basic policy engine (`src/policy_engine.py`)
 - Next.js/Postgres integration (unused in demo)
 
-### Built/Enhanced During Hackathon (Oct 26, 2026):
-- **Whole-word keyword matching** (Task 1) - prevents "eggplant" matching "egg"
-- **Allergen rule refinement** (Task 2) - "milk" mention ≠ allergen risk
-- **Negation and positive context handling** (Task 3) - "washroom was clean" → LOW
-- **Hygiene vs floor cleanliness policy split** (Task 4) - dirty floor → MEDIUM
-- **Department routing tests** (Task 5) - verified consistency
-- **Train/test split utility** (Task 6) - held-out evaluation framework
-- **Alert fatigue reduction** (Task 7) - minimum_support=3, volume thresholds
-- **Real trend calculations** (Task 8) - week-over-week rate changes, "new" flag
-- **Demo reliability scripts** (Task 9) - offline model caching, launcher scripts
-- **Documentation and cleanup** (Task 10) - this section, repo cleanup
+**Bug fixes and improvements (Oct 26, 2026 - PRE-BUILT):**
+- Whole-word keyword matching (prevents "eggplant" matching "egg")
+- Allergen rule refinement ("milk" mention ≠ allergen risk)
+- Negation and positive context handling ("washroom was clean" → LOW)
+- Hygiene vs floor cleanliness policy split (dirty floor → MEDIUM)
+- Department routing consistency tests
+- Train/test split utility (held-out evaluation framework)
+- Alert fatigue reduction (minimum_support=3, volume thresholds)
+- Real trend calculations (week-over-week rate changes)
+- Demo reliability scripts (offline model caching, launcher scripts)
+- **Synthetic label update**: 301 Store Cleanliness rows changed from HIGH to MEDIUM to match policy
+- Comprehensive documentation and repo cleanup
 
-All changes tracked in git commits with detailed messages (Oct 26, 2026).
+All changes tracked in 13 git commits (Oct 26, 2026).
+
+### Changes Made During the Hackathon (Oct 30-31, 2026):
+**[This section to be filled in during the actual hackathon event]**
+
+Examples of what might be added:
+- Live demo refinements based on judge feedback
+- Additional test cases from real scenarios
+- Performance optimizations discovered during demo
+- UI/UX improvements from user testing
+- Bug fixes found during live presentation
 
 ---
 
