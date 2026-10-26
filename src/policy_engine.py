@@ -27,25 +27,34 @@ POSITIVE_CONTEXT_WORDS = [
 NEUTRAL_HYGIENE_WORDS = ["washroom", "toilet", "bathroom", "restroom", "garbage", "trash", "spill"]
 
 # Negative qualifiers that turn neutral hygiene words into safety issues
+# "dirty" alone (e.g. "dirty floor") is NOT included here - it's MEDIUM via Store Cleanliness
+# Only washroom/toilet with these qualifiers escalate to HIGH
 NEGATIVE_QUALIFIERS = [
-    "dirty", "smelly", "unclean", "overflowing", "overflow", "blocked", "broken",
+    "smelly", "unclean", "overflowing", "overflow", "blocked", "broken",
     "filthy", "disgusting", "stink", "smell bad", "smells bad", "stinks",
     "clogged", "leaking", "leak", "not working", "not cleaned",
+    "dirty",  # Only escalates when paired with washroom/toilet/garbage
 ]
 
 # Safety patterns that always escalate (no negation checking for these)
 ALWAYS_ESCALATE_PATTERNS = {
     "Staff Misconduct": ["misconduct", "harassment", "inappropriate", "inappropriately", "abuse", "rude staff", "touching", "threatened"],
     "Food Contamination": ["contamination", "contaminated", "mold", "fungus", "spoiled food", "food poisoning", "cockroach", "pest", "insect in food"],
+    "Washroom Hygiene": ["hygiene"],  # Only escalates when combined with washroom/toilet context
 }
 
 # Safety patterns that can be negated or need context
+# Note: "dirty" is NOT here - floor dirtiness is MEDIUM (Store Cleanliness)
+# Only washroom/toilet dirtiness escalates to HIGH
 SAFETY_PATTERNS = {
     "Allergen Risk": ["allergen", "allergy", "contains nuts", "gluten", "cross contamination"],
     "Food Contamination": ["spoil", "spoiled", "spoiled milk", "expired", "rotten", "stale"],
-    "Hygiene": ["hygiene", "dirty", "unclean", "smell bad", "smells bad", "filthy", "disgusting"],
+    "Washroom Hygiene": ["smell bad", "smells bad", "filthy", "disgusting"],  # Severe washroom issues
     "Unsafe Product": ["unsafe", "dangerous", "hazard", "broken glass", "electrical shock", "slip hazard"],
 }
+
+# Floor cleanliness keywords: these are MEDIUM severity unless combined with food/pests
+FLOOR_CLEANLINESS_KEYWORDS = ["dirty floor", "messy", "trash visible", "cleaning", "sanitation"]
 
 # Allergen terms that are only meaningful when the complaint is about a missing or
 # wrong *declaration*. A bare ingredient mention is not a safety incident: "milk
@@ -238,13 +247,16 @@ def _match_safety_patterns(text: str) -> list[str]:
             matches.append(label)
             break
 
-    # Handle neutral hygiene words: only escalate with negative qualifiers
-    if "Hygiene" not in matches:  # Don't double-add
-        for neutral_word in NEUTRAL_HYGIENE_WORDS:
-            if contains_keyword(normalized, neutral_word):
+    # Handle washroom/toilet/garbage hygiene: only escalate with negative qualifiers
+    # Floor cleanliness (even if dirty) does NOT escalate to HIGH
+    if "Washroom Hygiene" not in matches and "Hygiene" not in matches:
+        # Check washroom/toilet/bathroom/restroom/garbage (not just "trash visible")
+        hygiene_words = ["washroom", "toilet", "bathroom", "restroom", "garbage"]
+        for hygiene_word in hygiene_words:
+            if contains_keyword(normalized, hygiene_word):
                 # Only escalate if negative qualifier is present AND not positive context
                 if _neutral_hygiene_needs_qualifier(text) and not has_positive:
-                    matches.append("Hygiene")
+                    matches.append("Washroom Hygiene")
                     break
 
     # Check contextual patterns (allergen risk with declaration context)
@@ -291,7 +303,7 @@ def determine_severity(
         elif "Food Contamination" in matches:
             department = "Store Operations"
             reason_parts.append("Possible food contamination or spoilage detected.")
-        elif "Hygiene" in matches:
+        elif "Washroom Hygiene" in matches or "Hygiene" in matches:
             department = "Store Operations"
             reason_parts.append("Hygiene issue flagged as a store safety concern.")
         elif "Unsafe Product" in matches:

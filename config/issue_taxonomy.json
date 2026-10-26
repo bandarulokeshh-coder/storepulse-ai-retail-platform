@@ -208,7 +208,7 @@
     {
       "issue_category": "Store Cleanliness",
       "department": "Store Operations",
-      "severity_default": "HIGH",
+      "severity_default": "MEDIUM",
       "keywords": ["messy", "dirty floor", "trash", "cleaning", "sanitation"],
       "suggested_action": "Schedule cleanup and verify sanitation standards."
     },

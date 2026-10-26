@@ -49,18 +49,31 @@ def test_staff_misconduct_always_escalates():
 
 
 def test_hygiene_with_negative_qualifiers_escalates():
-    """Neutral hygiene words WITH negative qualifiers should escalate."""
-    cases = [
+    """Washroom/toilet hygiene issues WITH negative qualifiers should escalate to HIGH.
+
+    Task 4 policy: General floor cleanliness is MEDIUM (Store Cleanliness).
+    Only washroom/toilet hygiene escalates to HIGH.
+    """
+    high_cases = [
         "Washroom is dirty and smells bad",
         "Toilet is blocked and overflowing",
         "Garbage is overflowing and smelly",
-        "Store floor is dirty and trash is visible",
     ]
 
-    for text in cases:
+    for text in high_cases:
         decision = evaluate_policy(text)
         assert decision.severity == "HIGH", f"'{text}' should be HIGH, got {decision.severity}"
-        assert "Hygiene" in decision.matched_rules or "Food Contamination" in decision.matched_rules
+        assert "Washroom Hygiene" in decision.matched_rules or "Food Contamination" in decision.matched_rules
+
+    # Task 4: General floor cleanliness should be MEDIUM, not HIGH
+    floor_cases = [
+        "Store floor is dirty and trash is visible",
+        "Floor is messy and needs cleaning",
+    ]
+
+    for text in floor_cases:
+        decision = evaluate_policy(text, issue_category="Store Cleanliness")
+        assert decision.severity == "MEDIUM", f"'{text}' should be MEDIUM (Store Cleanliness), got {decision.severity}"
 
 
 def test_refrigeration_failure_routes_to_store_operations_not_merchandising():
