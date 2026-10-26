@@ -61,6 +61,9 @@ class ModelBundle:
     trained_on_demo_data: bool = False
     notes: str = "rule_based"
     errors: list[str] | None = None
+    train_size: int = 0
+    test_size: int = 0
+    random_state: int = 42
 
     @property
     def trained_targets(self) -> list[str]:
@@ -72,6 +75,12 @@ class ModelBundle:
         if self.actionable_model is not None:
             targets.append("actionability")
         return targets
+
+    @property
+    def classifier_mode(self) -> str:
+        if not self.trained_targets:
+            return "rule_based_fallback"
+        return f"ml_trained_{'+'.join(self.trained_targets)}"
 
 
 class FeedbackAnalyzer:
@@ -93,12 +102,16 @@ class FeedbackAnalyzer:
 
     @staticmethod
     def _build_pipeline() -> Pipeline:
-        # `multi_class` was removed in scikit-learn 1.7; the solver now handles
-        # multiclass automatically, so passing it raises TypeError.
+        # Task 6: TF-IDF with word + char n-grams for better multilingual coverage
         return Pipeline(
             steps=[
-                ("vectorizer", TfidfVectorizer(ngram_range=(1, 2), min_df=2, max_features=8000)),
-                ("classifier", LogisticRegression(max_iter=500, class_weight="balanced")),
+                ("vectorizer", TfidfVectorizer(
+                    ngram_range=(1, 2),  # word unigrams and bigrams
+                    analyzer='char_wb',  # character n-grams within word boundaries
+                    min_df=2,
+                    max_features=8000
+                )),
+                ("classifier", LogisticRegression(max_iter=500, class_weight="balanced", random_state=42)),
             ]
         )
 
