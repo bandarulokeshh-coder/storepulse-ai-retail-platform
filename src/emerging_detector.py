@@ -109,10 +109,11 @@ def _supporting_quotes(group: pd.DataFrame, limit: int = 3) -> list[str]:
 def detect_emerging_incidents(
     df: pd.DataFrame,
     *,
-    minimum_support: int = 2,
+    minimum_support: int = 3,
     growth_threshold: float = 2.5,
     spike_threshold: float = 3.0,
     lookback_weeks: int = 6,
+    minimum_store_week_total: int = 5,
 ) -> pd.DataFrame:
     """Store-level, normalized-rate early warning detector.
 
@@ -120,6 +121,8 @@ def detect_emerging_incidents(
     - Compare each store/category week against the previous lookback window.
     - Use median and MAD for a robust baseline.
     - Handle zero baselines safely using smoothed rate comparisons.
+    - minimum_support raised to 3 (from 2) to reduce alert fatigue
+    - minimum_store_week_total ensures normalized rates are based on sufficient volume
     """
     if df.empty:
         return pd.DataFrame(
@@ -163,6 +166,10 @@ def detect_emerging_incidents(
             alert_date = pd.Timestamp(current_row["week_start"])
 
             if current_count < minimum_support:
+                continue
+
+            # Skip if total store-week feedback is too low (normalized rates unreliable)
+            if total_store_feedback < minimum_store_week_total:
                 continue
 
             zero_baseline = baseline <= 0 and history_rates.size > 0
