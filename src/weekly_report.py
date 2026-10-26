@@ -115,23 +115,47 @@ def build_weekly_regional_report(
     ).reset_index().iterrows():
         issue_category = row["issue_category"]
         current_subset = current_week[current_week["issue_category"] == issue_category]
-        prev_subset = previous_week[previous_week["issue_category"] == issue_category]
+
+        # Calculate trend using normalized rates, not raw counts
+        current_rate = float(row["normalized_rate"])
+        prev_rate = 0.0
+        if not previous_metrics.empty:
+            prev_row = previous_metrics[previous_metrics["issue_category"] == issue_category]
+            if not prev_row.empty:
+                prev_rate = float(prev_row["normalized_rate"].mean())
+
+        # Compute week-over-week trend
+        if prev_rate > 0:
+            trend = current_rate / prev_rate
+            trend_display = f"{_trend_arrow(trend)} {trend:.2f}x"
+        elif current_rate > 0:
+            trend = 2.0  # Default for new issues (was zero, now has activity)
+            trend_display = "↑ new"
+        else:
+            trend = 1.0
+            trend_display = "→ 1.00x"
+
         current_count = int(row["complaints"])
-        prev_count = int(prev_subset.shape[0]) if not prev_subset.empty else 0
-        trend = (current_count + 1) / (prev_count + 1)
         severity = str(current_subset["severity"].mode().iloc[0]) if not current_subset.empty else "MEDIUM"
         department = str(current_subset["department"].mode().iloc[0]) if not current_subset.empty else "Store Operations"
         actionable = bool(current_subset["actionable"].astype(bool).mean() >= 0.5) if not current_subset.empty else False
-        score = calculate_priority_score(severity, float(row["normalized_rate"]), trend, actionable)
+        score = calculate_priority_score(severity, current_rate, trend, actionable)
+
+        # Show number of records behind the normalized rate
+        total_records = int(row["complaints"])
+        rate_note = f"(based on {total_records} record{'s' if total_records != 1 else ''})"
+        if total_records < 20:
+            rate_note += " ⚠️ low volume"
+
         issue_rows.append(
             {
                 "Issue Type": issue_category,
                 "Severity": severity,
-                "Trend": f"{_trend_arrow(trend)} {trend:.2f}x",
+                "Trend": trend_display,
                 "Affected Stores": int(row["affected_stores"]),
                 "Owning Department": department,
                 "Complaints": current_count,
-                "Normalized Rate": round(float(row["normalized_rate"]), 4),
+                "Normalized Rate": f"{current_rate:.4f} {rate_note}",
                 "Priority Score": score,
                 "Suggested Action": get_suggested_action(issue_category),
                 "Evidence Quotes": [compact_text(text, 120) for text in current_subset["feedback_text"].head(3).tolist()],
