@@ -237,6 +237,7 @@ def model_insights_summary(analyzer: FeedbackAnalyzer) -> dict[str, Any]:
         "supports_ml": analyzer.model_bundle.issue_model is not None,
         "fallback_mode": analyzer.model_bundle.issue_model is None,
         "embeddings_enabled": analyzer.use_embeddings,
+        "training_errors": analyzer.model_bundle.errors or [],
         "limitations": [
             "Rule-based policy engine is intentionally used for safety escalation decisions; trained severity/actionability models are exposed for comparison only.",
             "Semantic similarity scores from embeddings are not calibrated confidences.",

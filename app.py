@@ -773,10 +773,14 @@ def render_settings(df: pd.DataFrame) -> pd.DataFrame:
         else:
             analyzer = default_analyzer()
             analyzer.fit_from_dataframe(labeled_df)
+            if analyzer.model_bundle.errors:
+                st.error("Training failed for one or more targets:")
+                for error in analyzer.model_bundle.errors:
+                    st.code(error)
             if analyzer.model_bundle.trained_targets:
                 st.session_state["labeled_training_dataframe"] = labeled_df
                 st.success(f"Trained supervised models for: {', '.join(analyzer.model_bundle.trained_targets)}.")
-            else:
+            elif not analyzer.model_bundle.errors:
                 st.warning("No usable labels found (each target needs at least two classes). Rule-based fallback remains active.")
 
     master_file = st.file_uploader(

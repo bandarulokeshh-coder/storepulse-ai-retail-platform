@@ -51,6 +51,9 @@ CATEGORY_PRIORITY = [
     "Parking Issue",
     "Unsafe Product",
     "Harassment",
+    "Assortment Gap",
+    "Order Cancellation",
+    "Staff Courtesy",
     "Customer Praise",
 ]
 
@@ -183,6 +186,160 @@ TEMPLATES: dict[str, dict[str, list[str]]] = {
         "Tamil Transliteration": ["Shopping experience romba nalla irundhuchu.", "Staff helpful ah irundhaanga."],
         "Marathi Transliteration": ["Shopping experience khup changla hota.", "Staff helpful hote."],
     },
+    "Food Contamination": {
+        "English": ["Found fungus on the packaged bread, it looks contaminated.", "Mold growth inside the container, food poisoning risk."],
+        "Hinglish": ["Bread pe fungus lag gaya hai, contaminated lag raha hai.", "Container ke andar mould hai, food poisoning ka risk hai."],
+        "Telugu Transliteration": ["Bread me fungus undi, contaminated ga undi.", "Container lo mold undi, food poisoning risk undi."],
+        "Tamil Transliteration": ["Bread la fungus irundhu, contaminated ah irukku.", "Container la mold undi, food poisoning risk undi."],
+        "Marathi Transliteration": ["Bread var fungus aahe, contaminated aahe.", "Container aatil mold aahe, food poisoning cha risk aahe."],
+    },
+    "Unsafe Product": {
+        "English": ["Broken bottle with sharp glass on the floor, it is dangerous.", "A leaking item near the electrical socket is a hazard."],
+        "Hinglish": ["Floor pe sharp glass pada hai, dangerous situation hai.", "Electrical socket ke paas leaking item hai, hazard hai."],
+        "Telugu Transliteration": ["Floor me sharp glass undi, dangerous ga undi.", "Electrical socket daggara leaking item undi, hazard undi."],
+        "Tamil Transliteration": ["Floor la sharp glass irukku, dangerous ah irukku.", "Electrical socket pakkathula leaking item irukku, hazard irukku."],
+        "Marathi Transliteration": ["Floor var sharp glass aahe, dangerous aahe.", "Electrical socket jwalil leaking item aahe, hazard aahe."],
+    },
+    "Harassment": {
+        "English": ["A staff member was harassing and following me in the aisle.", "Unsafe behaviour from a staff member, it was harassment."],
+        "Hinglish": ["Staff member ne harassment kiya aur mere peeche aaya.", "Staff se unsafe behaviour tha, ye harassment hai."],
+        "Telugu Transliteration": ["Staff member harassment chesaru, naa meeda follow chesaru.", "Staff nundi unsafe behaviour undi, ee harassment."],
+        "Tamil Transliteration": ["Staff member harassment cheythu, naa pinadi follow cheshthu.", "Staff kitta unsafe behaviour irundhu, idhu harassment."],
+        "Marathi Transliteration": ["Staff member ne harassment keli ani maza pachha aala.", "Staff kade unsafe behaviour hota, he harassment aahe."],
+    },
+    "Security Concern": {
+        "English": ["Someone tried to walk out with unpaid items, security needs attention.", "The area behind the store felt unsafe, a fight started nearby."],
+        "Hinglish": ["Bina bill ke koi bahar ja raha tha, security ko dekhna chahiye.", "Store ke peeche area unsafe tha, wahan fight start hui."],
+        "Telugu Transliteration": ["Bill leni kodiga bahar vellipoyindi, security ni choostavali.", "Store pakkathula area unsafe ga undi, akkada fight start ayindi."],
+        "Tamil Transliteration": ["Bill illa oruvanu veliya vanakkum, security ni paatalama venum.", "Store pinbathula area unsafe ah irundhu, inga fight start aayidhu."],
+        "Marathi Transliteration": ["Billa shivay koni baher gela, security ne baghaycha pahije.", "Store maghe area unsafe hota, tithhe fight zali."],
+    },
+    "Freshness Concern": {
+        "English": ["The vegetables are not fresh and smell spoiled.", "Stale bread on the shelf, the freshness date has passed."],
+        "Hinglish": ["Sabzi fresh nahi hai aur smell kharab aa rahi hai.", "Shelf pe stale bread hai, freshness date nikal gaya hai."],
+        "Telugu Transliteration": ["Sabzi fresh nahi undi, smell kharab vastundi.", "Shelf lo stale bread undi, freshness date telipoyindi."],
+        "Tamil Transliteration": ["Sabzi fresh illa, smell kharab varudhu.", "Shelf la stale bread irukku, freshness date selipoyidhu."],
+        "Marathi Transliteration": ["Sabzi fresh nahi aahe, smell kharab yetey.", "Shelf var stale bread aahe, freshness date seniority aahe."],
+    },
+    "Equipment Failure": {
+        "English": ["The billing scanner is broken and not working at all.", "The printer machine is kaput, we could not print the bill."],
+        "Hinglish": ["Billing scanner broken hai aur work nahi kar raha.", "Printer machine kaput hai, bill print nahi hua."],
+        "Telugu Transliteration": ["Billing scanner broken undi, work avvatledu.", "Printer machine kaput undi, bill print avvatledu."],
+        "Tamil Transliteration": ["Billing scanner broken ah irukku, work aagala.", "Printer machine kaput ah irukku, bill print aagala."],
+        "Marathi Transliteration": ["Billing scanner broken aahe ani work hot nahi.", "Printer machine kaput aahe, bill print zala nahi."],
+    },
+    "Shelf Tag Missing": {
+        "English": ["The product has no shelf tag and the price tag is absent.", "Missing tag on the shelf, customers are confused."],
+        "Hinglish": ["Product ka shelf tag nahi hai, price tag absent hai.", "Shelf pe tag missing hai, customers confuse ho rahe hain."],
+        "Telugu Transliteration": ["Product ki shelf tag ledu, price tag absent undi.", "Shelf lo tag missing undi, customers confuse avtunnaru."],
+        "Tamil Transliteration": ["Product ku shelf tag illa, price tag absent ah irukku.", "Shelf la tag missing ah irukku, customers confuse aagarnthu."],
+        "Marathi Transliteration": ["Product cha shelf tag nahi, price tag absent aahe.", "Shelf var tag missing aahe, customers confuse hot aahet."],
+    },
+    "Fresh Produce Quality": {
+        "English": ["The fresh produce section has rotten fruit and soft bananas.", "Vegetables are bad quality, the produce was not fresh."],
+        "Hinglish": ["Fresh produce section me fruit rotten hai aur bananas soft hain.", "Sabzi quality kharab hai, produce fresh nahi tha."],
+        "Telugu Transliteration": ["Fresh produce section lo fruit rotten undi, bananas soft unnayi.", "Sabzi quality kharab undi, produce fresh kaadu."],
+        "Tamil Transliteration": ["Fresh produce section la fruit rotten irukku, bananas soft unnai.", "Sabzi quality kharab irukku, produce fresh illa."],
+        "Marathi Transliteration": ["Fresh produce section madhe fruit rotten aahe, bananas soft aahet.", "Sabzi quality kharab aahe, produce fresh navhati."],
+    },
+    "Packaging Damage": {
+        "English": ["The packaging is torn and the pack is leaking on the shelf.", "A crushed pack arrived with damaged packaging."],
+        "Hinglish": ["Packaging torn hai aur pack shelf pe leak ho raha hai.", "Crushed pack aaya tha, packaging damaged thi."],
+        "Telugu Transliteration": ["Packaging torn undi, pack shelf me leak avtundi.", "Crushed pack vachindi, packaging damaged undi."],
+        "Tamil Transliteration": ["Packaging torn irukku, pack shelf la leak aaguthu.", "Crushed pack vandhudhu, packaging damaged irundhu."],
+        "Marathi Transliteration": ["Packaging torn aahe ani pack shelf var leak hot aahe.", "Crushed pack aala, packaging damaged hoti."],
+    },
+    "Product Damage": {
+        "English": ["The damaged product I bought was cracked and leaking.", "Broken item in the aisle, the product was damaged."],
+        "Hinglish": ["Jo damaged product liya tha wo cracked aur leaking tha.", "Aisle me broken item tha, product damaged tha."],
+        "Telugu Transliteration": ["Damaged product kondaanu adi cracked aur leaking undi.", "Aisle lo broken item undi, product damaged undi."],
+        "Tamil Transliteration": ["Damaged product kondaana vachi adhigama cracked ah leaking irundhu.", "Aisle la broken item irundhu, product damaged irundhu."],
+        "Marathi Transliteration": ["Damaged product ghetla te cracked ani leaking hota.", "Aisle madhe broken item hota, product damaged hota."],
+    },
+    "Inventory Mismatch": {
+        "English": ["Inventory mismatch at the warehouse, system stock differs from physical stock.", "The counts are wrong and the barcode mismatch is visible."],
+        "Hinglish": ["Warehouse me inventory mismatch hai, system stock aur physical stock alag hai.", "Counts galat hain aur barcode mismatch dikh raha hai."],
+        "Telugu Transliteration": ["Warehouse lo inventory mismatch undi, system stock physical stock ki vere.", "Counts tappu unnayi, barcodeMismatch kaadu avtundi."],
+        "Tamil Transliteration": ["Warehouse la inventory mismatch irukku, system stock physical stock vera irukku.", "Counts thappu irunnu, barcode mismatch kaadu aayidhu."],
+        "Marathi Transliteration": ["Warehouse madhe inventory mismatch aahe, system stock ani physical stock vegla aahet.", "Counts chukicha aahet ani barcodeMismatch dakhavtoy."],
+    },
+    "Promotion Mismatch": {
+        "English": ["The offer was not applied and the discount is missing on the bill.", "Coupon promo did not apply even though it was eligible."],
+        "Hinglish": ["Offer apply nahi hua aur bill pe discount missing hai.", "Coupon promo apply nahi hua jabki eligible tha."],
+        "Telugu Transliteration": ["Offer apply avvatledu, bill me discount missing undi.", "Coupon promo apply avvatledu, eligible ayina."],
+        "Tamil Transliteration": ["Offer apply aagala, bill la discount missing irukku.", "Coupon promo apply aagala eligible irundhu."],
+        "Marathi Transliteration": ["Offer apply zala nahi ani bill var discount missing aahe.", "Coupon promo apply zala nahi even though eligible hota."],
+    },
+    "Billing Issue": {
+        "English": ["The bill is wrong and I was charged twice for the same item.", "Invoice amount is incorrect, the receipt does not match."],
+        "Hinglish": ["Bill galat hai aur same item ke liye do baar charge hua.", "Invoice amount incorrect hai, receipt match nahi karta."],
+        "Telugu Transliteration": ["Bill tappu undi, same item ki dubbara charge ayindi.", "Invoice amount tappu undi, receipt match avvatledu."],
+        "Tamil Transliteration": ["Bill thappu irukku, same item ku irandu vaati charge aayidhu.", "Invoice amount thappu irukku, receipt match aagala."],
+        "Marathi Transliteration": ["Bill chukicha aahe ani same item sathi don vaat charge zaale.", "Invoice amount chukicha aahe, receipt match hot nahi."],
+    },
+    "App Login Failure": {
+        "English": ["The app login failed and I cannot sign in to my account.", "The app crash keeps happening and the otp is not coming."],
+        "Hinglish": ["App login failed ho raha hai, account me sign in nahi ho raha.", "App crash hota rehta hai aur otp nahi aa raha."],
+        "Telugu Transliteration": ["App login fail avtundi, account lo sign in avvatledu.", "App crash avtundi, otp raaledu."],
+        "Tamil Transliteration": ["App login fail aaguthu, account la sign in aagala.", "App crash aagum ma, otp varudhu illa."],
+        "Marathi Transliteration": ["App login fail hot aahe, account madhe sign in hot nahi.", "App crash kahi hot aahe ani otp yet nahi."],
+    },
+    "Return Issue": {
+        "English": ["My return was rejected and the refund is still pending.", "The return problem has not been resolved, exchange was refused."],
+        "Hinglish": ["Mera return reject ho gaya aur refund abhi bhi pending hai.", "Return problem solve nahi hua, exchange refuse kar diya."],
+        "Telugu Transliteration": ["Nenu return reject chesaru, refund pendu ga undi.", "Return problem solve avvatledu, exchange refuse chesaru."],
+        "Tamil Transliteration": ["Enakku return reject aayidhu, refund pendu irukku.", "Return problem solve aagala, exchange refuse aayidhu."],
+        "Marathi Transliteration": ["Maza return reject zala ani refund ajun pending aahe.", "Return problem solve zala nahi, exchange refuse karun diye."],
+    },
+    "Queue Management": {
+        "English": ["The queue management at billing is poor and I was waiting for a long time.", "Long waiting line and no queue control at the entrance."],
+        "Hinglish": ["Billing pe queue management kharab hai aur main bahut der se wait kar raha tha.", "Entrance pe lamba waiting line hai aur queue control nahi hai."],
+        "Telugu Transliteration": ["Billing me queue management kharab undi, bahut neru wait chesa.", "Entrance lo pedda waiting line undi, queue control ledu."],
+        "Tamil Transliteration": ["Billing la queue management kharab irukku, romba neru wait chesa.", "Entrance la perusa waiting line irukku, queue control illa."],
+        "Marathi Transliteration": ["Billing var queue management kharab aahe ani mi khup vel wait kela.", "Entrance var lambi waiting line aahe, queue control nahi."],
+    },
+    "Lighting Failure": {
+        "English": ["The lights are off in the back aisle and the area is dark.", "There is a lighting issue, the bulb is not working."],
+        "Hinglish": ["Peeche wali aisle me lights off hain aur area dark hai.", "Lighting issue hai, bulb work nahi kar raha."],
+        "Telugu Transliteration": ["Peeche aisle lo lights off unnayi, area dark undi.", "Lighting issue undi, bulb work avvatledu."],
+        "Tamil Transliteration": ["Pinadi aisle la lights off irunnu, area dark irukku.", "Lighting issue irukku, bulb work aagala."],
+        "Marathi Transliteration": ["Maghya aisle var lights off aahet ani area dark aahe.", "Lighting issue aahe, bulb work hot nahi."],
+    },
+    "Parking Issue": {
+        "English": ["The parking lot is full and the entrance is blocked.", "No parking space near the store and the vehicle is parked badly."],
+        "Hinglish": ["Parking lot full hai aur entrance blocked hai.", "Store ke paas parking space nahi hai aur vehicle galat park kiya hai."],
+        "Telugu Transliteration": ["Parking lot full undi, entrance blocked undi.", "Store daggara parking space ledu, vehicle sarva incorrect ga undi."],
+        "Tamil Transliteration": ["Parking lot full irukku, entrance blocked irukku.", "Store pakkathula parking space illa, vehicle thappu vaadi park cheshthu."],
+        "Marathi Transliteration": ["Parking lot full aahe ani entrance blocked aahe.", "Store javal parking space nahi ani vehicle chukicha park keli aahe."],
+    },
+    "Customer Service Delay": {
+        "English": ["There was no response for a long time and I was waiting for help.", "Staff were unavailable at the service desk, service delay."],
+        "Hinglish": ["Bahut der se koi response nahi mila aur main help ka wait kar raha tha.", "Service desk pe staff available nahi the, service delay."],
+        "Telugu Transliteration": ["Bahut neru response ledu, help kosam wait chesa.", "Service desk me staff available kadu, service delay undi."],
+        "Tamil Transliteration": ["Romba neru response illa, help kosam wait chesa.", "Service desk la staff available illa, service delay undi."],
+        "Marathi Transliteration": ["Khup vel response nahi aala ani mi help cha wait kela.", "Service desk var staff available navhati, service delay hota."],
+    },
+    "Assortment Gap": {
+        "English": ["There is no variety in this section, the assortment is very limited selection.", "No options for the products I need, the shelf has missing variety."],
+        "Hinglish": ["Is section me variety nahi hai, assortment bahut kam hai.", "Jo chahiye uska koi option nahi, shelf par missing variety hai."],
+        "Telugu Transliteration": ["E section lo variety ledu, assortment chala kam undi.", "Kavalsalaniki option ledu, shelf me missing variety undi."],
+        "Tamil Transliteration": ["E section la variety illa, assortment romba kam irukku.", "Theevatthaanaaga option illa, shelf la missing variety irukku."],
+        "Marathi Transliteration": ["Aa section madhe variety nahi aahe, assortment khup kam aahe.", "Je lagte te option nahi, shelf var missing variety aahe."],
+    },
+    "Order Cancellation": {
+        "English": ["My app order was cancelled without any reason and the refund has not come.", "The order was cancelled by the delivery app and the refund is still pending."],
+        "Hinglish": ["Mera app order bina reason cancel ho gaya aur refund nahi aaya.", "Delivery app ne order cancel kiya aur refund pending hai."],
+        "Telugu Transliteration": ["Nenu app order kannada reason ledu cancel ayindi, refund radu.", "Delivery app order ni cancel chesindi, refund pendu undi."],
+        "Tamil Transliteration": ["Enakku app order karuvana cancel aayidhu, refund varalillla.", "Delivery app order cancel cheshthu, refund pendu irukku."],
+        "Marathi Transliteration": ["Maza app order karma cancel zala, refund nahi aala.", "Delivery app ne order cancel keli, refund ajun pending aahe."],
+    },
+    "Staff Courtesy": {
+        "English": ["The staff member was rude and had a bad attitude at the counter.", "An uncourteous employee was not polite with the customer."],
+        "Hinglish": ["Staff member rude tha aur counter pe uska attitude kharab tha.", "Ek uncourteous employee customer ke saath polite nahi tha."],
+        "Telugu Transliteration": ["Staff member rude ga undi, counter me attitude kharab undi.", "Uncourteous employee customer tho polite ga undi kaadu."],
+        "Tamil Transliteration": ["Staff member rude ah irundhu, counter la attitude kharab irundhu.", "Uncourteous employee customer kitta polite ah illa."],
+        "Marathi Transliteration": ["Staff member rude hota ani counter var attitude kharab hota.", "Uncourteous employee customer shi polite nahi hota."],
+    },
 }
 
 INCIDENT_PROFILES = [
@@ -258,7 +415,12 @@ def _choose_language(rng: np.random.Generator) -> str:
 def _template_for(category: str, language: str, rng: np.random.Generator) -> str:
     category_templates = TEMPLATES.get(category)
     if category_templates is None:
-        category_templates = TEMPLATES["Customer Praise"]
+        # Falling back to another category's text silently corrupts the ground
+        # truth, so fail loudly instead of generating mislabelled records.
+        raise KeyError(
+            f"No templates defined for category {category!r}. "
+            "Add multilingual templates before generating this category."
+        )
     options = category_templates.get(language) or category_templates.get("English") or [f"{category} reported."]
     text = str(rng.choice(options))
     noise_suffixes = ["", " 😟", " !!", " pls check", " urgent", " asap"]
@@ -298,6 +460,9 @@ def _base_category_weights() -> dict[str, float]:
         "Lighting Failure": 0.01,
         "Parking Issue": 0.01,
         "Return Issue": 0.01,
+        "Assortment Gap": 0.01,
+        "Order Cancellation": 0.01,
+        "Staff Courtesy": 0.01,
     }
     total = sum(weights.values())
     return {key: value / total for key, value in weights.items()}

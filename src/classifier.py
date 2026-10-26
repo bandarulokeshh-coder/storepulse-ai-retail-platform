@@ -60,6 +60,7 @@ class ModelBundle:
     actionable_labels: list[str] | None = None
     trained_on_demo_data: bool = False
     notes: str = "rule_based"
+    errors: list[str] | None = None
 
     @property
     def trained_targets(self) -> list[str]:
@@ -92,10 +93,12 @@ class FeedbackAnalyzer:
 
     @staticmethod
     def _build_pipeline() -> Pipeline:
+        # `multi_class` was removed in scikit-learn 1.7; the solver now handles
+        # multiclass automatically, so passing it raises TypeError.
         return Pipeline(
             steps=[
                 ("vectorizer", TfidfVectorizer(ngram_range=(1, 2), min_df=2, max_features=8000)),
-                ("classifier", LogisticRegression(max_iter=500, class_weight="balanced", multi_class="auto")),
+                ("classifier", LogisticRegression(max_iter=500, class_weight="balanced")),
             ]
         )
 
@@ -114,6 +117,10 @@ class FeedbackAnalyzer:
         Spec: when labeled data is available, support training for issue type,
         severity, and actionability. Missing or unusable labels are skipped
         silently for that target (the rule engine remains the fallback).
+
+        Training errors are recorded in `self.model_bundle.errors` instead of
+        being swallowed, so a failed training run is visible in the UI rather
+        than silently degrading to the rule engine.
         """
         if "feedback_text" not in df.columns:
             return
@@ -123,6 +130,7 @@ class FeedbackAnalyzer:
 
         trained_targets: list[str] = []
         failed = False
+        errors: list[str] = []
 
         if "issue_category" in training_df.columns and training_df["issue_category"].nunique() >= 2:
             try:
@@ -131,8 +139,9 @@ class FeedbackAnalyzer:
                     self.model_bundle.issue_model = model
                     self.model_bundle.issue_labels = sorted(training_df["issue_category"].astype(str).unique().tolist())
                     trained_targets.append("issue_type")
-            except Exception:
+            except Exception as exc:
                 failed = True
+                errors.append(f"issue_type: {exc.__class__.__name__}: {exc}")
 
         if "severity" in training_df.columns and training_df["severity"].nunique() >= 2:
             try:
@@ -141,8 +150,9 @@ class FeedbackAnalyzer:
                     self.model_bundle.severity_model = model
                     self.model_bundle.severity_labels = sorted(training_df["severity"].astype(str).unique().tolist())
                     trained_targets.append("severity")
-            except Exception:
+            except Exception as exc:
                 failed = True
+                errors.append(f"severity: {exc.__class__.__name__}: {exc}")
 
         if "actionable" in training_df.columns and training_df["actionable"].astype(str).nunique() >= 2:
             try:
@@ -151,8 +161,11 @@ class FeedbackAnalyzer:
                     self.model_bundle.actionable_model = model
                     self.model_bundle.actionable_labels = sorted(training_df["actionable"].astype(str).unique().tolist())
                     trained_targets.append("actionability")
-            except Exception:
+            except Exception as exc:
                 failed = True
+                errors.append(f"actionability: {exc.__class__.__name__}: {exc}")
+
+        self.model_bundle.errors = errors
 
         if trained_targets:
             self.model_bundle.trained_on_demo_data = True
