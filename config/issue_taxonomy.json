@@ -6,7 +6,7 @@
       "issue_category": "Refrigeration Failure",
       "department": "Store Operations",
       "severity_default": "HIGH",
-      "keywords": ["freezer", "fridge", "refrigerator", "cooling", "temperature", "thanda", "warms", "spoil", "ice cream melted"],
+      "keywords": ["freezer", "fridge", "refrigerator", "cooling", "cold storage", "temperature", "thanda", "warms", "spoil", "spoiling", "spoiled", "spoilage", "ice cream melted"],
       "suggested_action": "Inspect refrigeration equipment and isolate affected products."
     },
     {
@@ -146,7 +146,7 @@
       "issue_category": "Staff Misconduct",
       "department": "HR",
       "severity_default": "HIGH",
-      "keywords": ["misconduct", "inappropriate", "harassment", "rude staff", "abuse", "threatened"],
+      "keywords": ["misconduct", "inappropriate", "inappropriately", "harassment", "rude staff", "abuse", "threaten", "threatened", "threatening"],
       "suggested_action": "Escalate to HR and conduct an incident review."
     },
     {

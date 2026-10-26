@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, asdict
 from typing import Iterable
 
-from .preprocessing import normalize_text
+from .preprocessing import contains_keyword, normalize_text
 from .routing import get_department_for_issue, get_default_severity
 
 SAFETY_PATTERNS = {
@@ -78,10 +78,16 @@ class PolicyResult:
 
 
 def _match_rules(text: str, patterns: dict[str, list[str]]) -> list[str]:
+    """Match rule labels with whole-word semantics.
+
+    Patterns are compiled once per keyword (preprocessing.keyword_pattern), so
+    short keywords such as "spill" or "slip" cannot match inside unrelated
+    words, and repeated evaluation does not recompile regexes.
+    """
     normalized = normalize_text(text)
     matches: list[str] = []
     for label, keywords in patterns.items():
-        if any(keyword in normalized for keyword in keywords):
+        if any(contains_keyword(normalized, keyword) for keyword in keywords if keyword):
             matches.append(label)
     return matches
 
@@ -93,9 +99,9 @@ def _contextual_match(normalized: str, spec: dict[str, list[str]]) -> bool:
     the rule to fire, which keeps bare ingredient mentions (a spoiling milk
     packet) from being read as an allergen declaration failure.
     """
-    if not any(term in normalized for term in spec.get("terms", [])):
+    if not any(contains_keyword(normalized, term) for term in spec.get("terms", [])):
         return False
-    return any(context in normalized for context in spec.get("context", []))
+    return any(contains_keyword(normalized, context) for context in spec.get("context", []))
 
 
 def _match_safety_patterns(text: str) -> list[str]:
@@ -103,7 +109,7 @@ def _match_safety_patterns(text: str) -> list[str]:
     normalized = normalize_text(text)
     matches: list[str] = []
     for label, keywords in SAFETY_PATTERNS.items():
-        if any(keyword in normalized for keyword in keywords):
+        if any(contains_keyword(normalized, keyword) for keyword in keywords if keyword):
             matches.append(label)
             continue
         spec = CONTEXTUAL_SAFETY_PATTERNS.get(label)
@@ -149,7 +155,7 @@ def determine_severity(
             reason_parts.append("Ambiguous safety signal flagged for human verification.")
         return severity, matches, human_review_required, department, " ".join(reason_parts)
 
-    if any(token in normalized for token in LOW_SEVERITY_POSITIVE):
+    if any(contains_keyword(normalized, token) for token in LOW_SEVERITY_POSITIVE):
         department = get_department_for_issue(issue_category or "Customer Service Delay")
         return "LOW", [], False, department, "Positive or low-risk feedback detected."
 

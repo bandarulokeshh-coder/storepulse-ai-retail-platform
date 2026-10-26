@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from datetime import datetime
+from functools import lru_cache
 from typing import Iterable
 
 import numpy as np
@@ -57,6 +58,25 @@ def normalize_text(value: object) -> str:
     text = re.sub(r"[^a-z0-9\s]", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
+
+
+@lru_cache(maxsize=4096)
+def keyword_pattern(keyword: str) -> re.Pattern[str]:
+    """Compile a whole-word/phrase matcher for one normalized keyword.
+
+    Short keywords such as "ned", "pos", "pani", "slip" or "egg" must not
+    match inside unrelated words ("opened", "position", "panipuri",
+    "slipper", "eggplant"). Patterns are cached so repeated rule evaluation
+    does not recompile them.
+    """
+    return re.compile(rf"(?<!\w){re.escape(keyword)}(?!\w)")
+
+
+def contains_keyword(text: str, keyword: str) -> bool:
+    """Whole-word/phrase containment check on already-normalized text."""
+    if not text or not keyword:
+        return False
+    return keyword_pattern(keyword).search(text) is not None
 
 
 def safe_parse_date(value: object, default: pd.Timestamp | None = None) -> pd.Timestamp | pd.NaT:

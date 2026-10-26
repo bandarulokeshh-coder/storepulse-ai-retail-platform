@@ -12,7 +12,7 @@ from sklearn.pipeline import Pipeline
 
 from .embeddings import SEMANTIC_MATCH_THRESHOLD, best_semantic_match, build_category_prototypes, ensure_embedding_model
 from .policy_engine import evaluate_policy
-from .preprocessing import normalize_text
+from .preprocessing import contains_keyword, normalize_text
 from .routing import category_keywords, get_department_for_issue, get_suggested_action
 
 GENERAL_FEEDBACK_CATEGORY = "General Feedback"
@@ -179,7 +179,7 @@ class FeedbackAnalyzer:
         best_score = 0.0
         matches: list[str] = []
         for category, keywords in self.keywords.items():
-            hits = [keyword for keyword in keywords if keyword and keyword in normalized]
+            hits = [keyword for keyword in keywords if keyword and contains_keyword(normalized, keyword)]
             score = float(len(hits))
             if score > best_score:
                 best_score = score
@@ -191,7 +191,9 @@ class FeedbackAnalyzer:
                     best_category = category
                     matches = hits
         if best_score == 0:
-            if any(token in normalized for token in POSITIVE_HINTS) and not any(token in normalized for token in NEGATIVE_HINTS):
+            if any(contains_keyword(normalized, token) for token in POSITIVE_HINTS) and not any(
+                contains_keyword(normalized, token) for token in NEGATIVE_HINTS
+            ):
                 return PRAISE_CATEGORY, 0.15, []
             return GENERAL_FEEDBACK_CATEGORY, 0.0, []
         confidence = min(0.95, 0.35 + (best_score * 0.2))

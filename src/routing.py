@@ -5,7 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from .preprocessing import normalize_text
+from .preprocessing import contains_keyword, normalize_text
 
 ROOT = Path(__file__).resolve().parents[1]
 TAXONOMY_PATH = ROOT / "config" / "issue_taxonomy.json"
@@ -32,7 +32,7 @@ def get_department_for_issue(issue_category: str, text: str | None = None, path:
     # Keyword-based fallback in case a future upload uses a slightly different label.
     for item in taxonomy.get("categories", []):
         keywords = [normalize_text(keyword) for keyword in item.get("keywords", [])]
-        if any(keyword and keyword in feedback for keyword in keywords):
+        if any(keyword and contains_keyword(feedback, keyword) for keyword in keywords):
             return item.get("department", default_department)
 
     return default_department
