@@ -710,6 +710,60 @@ def render_evaluation(df: pd.DataFrame, minimum_support: int, growth_threshold: 
             else:
                 st.info(entry["message"])
 
+    st.markdown("### Train/Test Split & Mode Comparison")
+
+    # Check if we have holdout split info
+    analyzer = get_analyzer(st.session_state.get("analyzer_signature", ""))
+    has_split = (
+        hasattr(analyzer, 'model_bundle') and
+        analyzer.model_bundle and
+        analyzer.model_bundle.train_size > 0 and
+        analyzer.model_bundle.test_size > 0
+    )
+
+    if has_split:
+        split_info = f"""
+        **Training set**: {analyzer.model_bundle.train_size} samples
+        **Test set**: {analyzer.model_bundle.test_size} samples
+        **Split ratio**: {analyzer.model_bundle.test_size / (analyzer.model_bundle.train_size + analyzer.model_bundle.test_size):.1%} held out
+        **Random state**: {analyzer.model_bundle.random_state}
+        """
+        st.markdown(split_info)
+
+        # Show mode comparison if we have test data in session
+        if "holdout_test_df" in st.session_state and not st.session_state["holdout_test_df"].empty:
+            from src.holdout_evaluation import compare_all_targets
+
+            with st.spinner("Comparing rule vs ML vs hybrid modes on held-out test set..."):
+                comparison = compare_all_targets(st.session_state["holdout_test_df"], analyzer)
+
+            # Display comparison table
+            comparison_data = []
+            for target_name, result in comparison.items():
+                if result["available"]:
+                    modes = result["modes"]
+                    comparison_data.append({
+                        "Target": target_name,
+                        "Samples": result["n_samples"],
+                        "Rule F1": f"{modes['rule']['macro_f1']:.3f}",
+                        "ML F1": f"{modes['ml']['macro_f1']:.3f}",
+                        "Hybrid F1": f"{modes['hybrid']['macro_f1']:.3f}",
+                        "Rule Acc": f"{modes['rule']['accuracy']:.3f}",
+                        "ML Acc": f"{modes['ml']['accuracy']:.3f}",
+                        "Hybrid Acc": f"{modes['hybrid']['accuracy']:.3f}",
+                    })
+
+            if comparison_data:
+                st.markdown("**Rule vs ML vs Hybrid Performance (Held-out Test Set)**")
+                st.dataframe(pd.DataFrame(comparison_data), hide_index=True, use_container_width=True)
+                st.caption("Rule = keyword-based only, ML = TF-IDF model only, Hybrid = smart combination (default)")
+            else:
+                st.info("No valid targets available for mode comparison.")
+        else:
+            st.info("Use the 'Retrain with Holdout Split' button in Settings to generate held-out evaluation.")
+    else:
+        st.info("Model was trained on full dataset. Use 'Retrain with Holdout Split' in Settings for proper evaluation.")
+
     st.markdown("### Model Insights")
     st.json(insights)
     precision_note = emerging.get("escalation_precision_note")
@@ -760,6 +814,45 @@ def render_settings(df: pd.DataFrame) -> pd.DataFrame:
 
     st.markdown("#### Optional Uploads (Official Dataset Mode)")
     st.caption("Additional official hackathon files. These never silently replace synthetic demo data.")
+
+    # Retrain with holdout split button
+    st.markdown("#### ML Training Options")
+    if st.button("🔄 Retrain with 80/20 Holdout Split"):
+        from src.holdout_evaluation import train_with_holdout
+
+        with st.spinner("Retraining with held-out test set..."):
+            # Get current data
+            current_df = st.session_state.get("active_dataframe", pd.DataFrame())
+
+            if not current_df.empty:
+                # Create new analyzer
+                from src.classifier import default_analyzer
+                new_analyzer = default_analyzer()
+
+                # Train with holdout
+                train_df, test_df = train_with_holdout(
+                    current_df,
+                    new_analyzer,
+                    test_size=0.2,
+                    random_state=42
+                )
+
+                # Store test set for evaluation
+                st.session_state["holdout_test_df"] = test_df
+
+                # Force analyzer refresh
+                if "analyzer_signature" in st.session_state:
+                    del st.session_state["analyzer_signature"]
+                st.session_state["analyzer_signature"] = f"holdout_{len(train_df)}_{len(test_df)}"
+
+                # Clear cached analyzer
+                get_analyzer.clear()
+
+                st.success(f"✅ Retrained on {len(train_df)} samples, held out {len(test_df)} for testing.")
+                st.info("Go to 'Evaluation & Model Insights' page to see rule vs ML vs hybrid comparison.")
+                st.rerun()
+            else:
+                st.error("No data available for training.")
 
     labeled_file = st.file_uploader(
         "Labeled training data (CSV with feedback_text + issue_category / severity / actionable)",
