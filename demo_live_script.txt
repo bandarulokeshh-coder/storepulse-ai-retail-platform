@@ -1,0 +1,110 @@
+STOREPULSE AI - LIVE DEMO SCRIPT
+TalentAP Mega Hackathon 2026 - Problem Statement R5
+Turning Store Chatter Into Action: The Voice-of-Store Engine
+
+======================================================================
+1. PROJECT OVERVIEW
+----------------------------------------------------------------------
+StorePulse AI turns unstructured retail feedback into operational action.
+The platform processes multilingual store feedback and delivers:
+
+• Issue classification (multilingual: English, Hinglish, Telugu, Tamil, Marathi)
+• Policy-first safety escalation (allergens, contamination, hygiene, misconduct)
+• Department routing (Store Operations, Supply Chain, Merchandising, Digital, HR)
+• Emerging incident detection (early-warning store-level spike detection)
+• Weekly regional action briefs (PDF/CSV reports with evidence quotes)
+• Cross-channel duplicate detection
+• Evaluation & model insights
+
+======================================================================
+2. TECHNOLOGY STACK
+----------------------------------------------------------------------
+Frontend/Framework:    Streamlit (app.py) + Next.js 16 (React 19)
+Data Processing:       Pandas, NumPy
+NLP/ML:                Sentence-Transformers (optional), Scikit-learn
+Rule-based engine:     Transparent keyword + policy patterns
+Visualization:         Plotly
+Database:              SQLite (demo) + PostgreSQL (Drizzle ORM)
+Reporting:             ReportLab (PDF), Pandas CSV
+
+======================================================================
+3. DEMONSTRATION OF KEY FEATURES
+----------------------------------------------------------------------
+
+3.1 AI FEEDBACK ANALYZER
+    Classifies multilingual feedback in real-time
+    Demonstrating with sample feedback:
+
+       1. [REFRIGERATION FAILURE] Severity=HIGH  Actionable=True Dept=Merchandising   Method=rule_based
+       2. [ALLERGEN LABEL ERROR] Severity=HIGH  Actionable=True Dept=Merchandising   Method=rule_based
+       3. [GENERAL FEEDBACK    ] Severity=MEDIUM Actionable=True Dept=Store Operations Method=rule_based
+       4. [STAFF MISCONDUCT    ] Severity=HIGH  Actionable=True Dept=HR              Method=rule_based
+
+3.2 POLICY-FIRST SAFETY ESCALATION
+    Safety categories always escalate to HIGH severity
+       'Milk packet has nuts but no allergen label...' → Severity=HIGH Escalates=True Dept=Merchandising
+       'Staff harassment at store entrance...' → Severity=HIGH Escalates=True Dept=HR
+       'Generic positive feedback from customer...' → Severity=MEDIUM Escalates=False Dept=Store Operations
+
+3.3 EMERGING INCIDENT DETECTION
+    Early-warning system based on normalized complaint rates
+       272 alerts detected from 3692 records
+       • Store ST-031 | App Payment Failure       Growth=4.00x Count=2
+       • Store ST-022 | Stock Shortage            Growth=3.50x Count=2
+       • Store ST-036 | Equipment Failure         Growth=2.80x Count=2
+
+3.4 AUTOMATIC DEPARTMENT ROUTING
+       'refrigeration failure' → Department: Store Operations     Action: Inspect refrigeration equipment and isolate affected products.
+       'allergen' → Department: Store Operations     Action: Review the issue with the owning team.
+       'payment failure' → Department: Store Operations     Action: Review the issue with the owning team.
+       'staff misconduct' → Department: HR                   Action: Escalate to HR and conduct an incident review.
+
+3.5 CROSS-CHANNEL DUPLICATE DETECTION
+       319 potential duplicate groups identified
+       Potential duplicate incident reported across up to 3 channels.
+
+3.6 WEEKLY REGIONAL ACTION BRIEFS
+    Generates downloadable PDF/CSV reports per region
+    Includes: regional overview, top 5 priority issues, action suggestions,
+
+======================================================================
+4. INTERACTIVE UI (STREAMLIT AT LOCALHOST:8501)
+----------------------------------------------------------------------
+The live app features a sidebar with:
+• Navigation between 7 pages: Dashboard, AI Analyzer, Emerging Alerts,
+  Weekly Reports, Store Analytics, Evaluation, Settings/About
+• Filter controls: Region, Store, Channel, Severity, Issue Category, Date Range
+• KPI metrics: Total feedback, High-severity issues, Emerging incidents,
+  Stores monitored, Actionable %, Departments requiring attention
+• Demo mode: 4 judge-ready scenarios that run through live application logic
+• Settings: Toggle embeddings, upload official datasets, replace taxonomy
+• Download buttons: PDF and CSV reports per region
+• Page-specific: confusion matrices, model insights, trend charts
+
+======================================================================
+5. DEMO SUMMARY
+----------------------------------------------------------------------
+StorePulse AI demonstrates how transparent rule-based AI can solve
+real retail operations problems without paid APIs. All classification
+decisions are explainable: every alert shows which rules matched,
+which policies triggered, and which department owns the issue.
+
+Key hackathon values:
+• Multilingual support (English, Hinglish, transliterated Indian languages)
+• Policy-first severity (safety categories → HIGH automatically)
+• Emerging detection with robust baselines (median/MAD)
+• Zero-history store safety (handles new stores with low volume)
+• Full explainability (no fabricated confidence scores)
+• Works offline with synthetic demo data clearly marked
+
+======================================================================
+6. RUNNING THE APPLICATION
+----------------------------------------------------------------------
+Streamlit app: http://localhost:8501
+Demo script:   python live_demo_script.py
+Synthetic data: 3,692 feedback records with seeded incidents
+Thresholds:      minimum_support=2, growth_threshold=2.5, spike_threshold=3.0
+
+======================================================================
+END OF LIVE DEMO SCRIPT
+======================================================================
