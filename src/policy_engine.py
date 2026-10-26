@@ -8,7 +8,7 @@ from .routing import get_department_for_issue, get_default_severity
 
 SAFETY_PATTERNS = {
     "Allergen Risk": ["allergen", "allergy", "contains nuts", "gluten", "cross contamination"],
-    "Food Contamination": ["contamination", "contaminated", "mold", "fungus", "spoiled food", "food poisoning"],
+    "Food Contamination": ["contamination", "contaminated", "mold", "fungus", "spoiled food", "food poisoning", "spoil", "spoiled", "spoiled milk", "expired"],
     "Hygiene": ["hygiene", "dirty", "unclean", "washroom", "toilet", "garbage", "cockroach", "spill", "smell bad"],
     "Unsafe Product": ["unsafe", "dangerous", "hazard", "broken glass", "electrical shock", "slip hazard"],
     "Staff Misconduct": ["misconduct", "harassment", "inappropriate", "abuse", "rude staff", "touching", "threatened"],

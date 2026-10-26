@@ -34,7 +34,7 @@
       "issue_category": "Allergen Label Error",
       "department": "Merchandising",
       "severity_default": "HIGH",
-      "keywords": ["allergen", "allergy", "label wrong", "ingredient mismatch", "contains nuts", "gluten", "milk", "egg", "pack label"],
+      "keywords": ["allergen", "allergy", "label wrong", "ingredient mismatch", "contains nuts", "gluten", "pack label"],
       "suggested_action": "Pull affected labels and verify packaging compliance."
     },
     {

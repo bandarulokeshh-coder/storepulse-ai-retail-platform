@@ -46,3 +46,36 @@ def test_allergen_keyword_alone_still_escalates():
     decision = evaluate_policy("Wrong allergen label on the packet.")
     assert "Allergen Risk" in decision.matched_rules
     assert decision.severity == "HIGH"
+
+
+def test_hinglish_spoiling_milk_is_refrigeration_high_not_allergen():
+    """Spoiling milk is a refrigeration failure, not an allergen incident.
+
+    Must escalate (food contamination/spoilage policy) to HIGH with Store
+    Operations owning it, and the reason must never mention allergens.
+    """
+    from src.classifier import FeedbackAnalyzer
+
+    text = "Store freezer work avvatledu, milk packets spoil autu may"
+    decision = evaluate_policy(text, "Refrigeration Failure")
+    assert decision.severity == "HIGH"
+    assert decision.department == "Store Operations"
+    assert "allergen" not in decision.reason.lower()
+    assert "Allergen Risk" not in decision.matched_rules
+
+    result = FeedbackAnalyzer().analyze(text)
+    assert result.issue_category == "Refrigeration Failure"
+    assert result.severity == "HIGH"
+    assert result.department == "Store Operations"
+
+
+def test_bare_milk_mention_in_unrelated_text_is_not_high():
+    decision = evaluate_policy("Bought milk, billing counter was slow")
+    assert decision.severity != "HIGH"
+    assert "Allergen Risk" not in decision.matched_rules
+
+
+def test_eggplant_is_not_high():
+    decision = evaluate_policy("I got the eggplant and it was fresh")
+    assert decision.severity != "HIGH"
+    assert "Allergen Risk" not in decision.matched_rules
