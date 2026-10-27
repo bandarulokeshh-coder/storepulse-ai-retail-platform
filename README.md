@@ -11,14 +11,16 @@ The app processes multilingual retail feedback, detects operational issues, assi
 - [Project Overview](#project-overview)
 - [Key Features](#key-features)
 - [Technology Stack](#technology-stack)
+- [Architecture](#architecture)
 - [Installation](#installation)
 - [How to Run](#how-to-run)
-- [Architecture](#architecture)
-- [Safety Escalation Policy](#safety-escalation-policy)
+- [Dataset Format](#dataset-format)
 - [How Classification Works](#how-classification-works)
 - [How Emerging Detection Works](#how-emerging-detection-works)
 - [Limitations](#limitations)
 - [Testing Instructions](#testing-instructions)
+- [Safety Escalation Policy](#safety-escalation-policy)
+- [Held-out Evaluation](#held-out-evaluation)
 - [Team Roles](#team-roles)
 - [Pre-built vs Built During Hackathon](#pre-built-vs-built-during-hackathon)
 - [Notes for Judges](#notes-for-judges)
@@ -157,36 +159,51 @@ Shows demonstration metrics for:
 ## Architecture
 
 ```text
-storepulse-ai/
-├── app.py
+storepulse-ai-retail-platform/
+├── app.py                          # Main Streamlit dashboard
 ├── requirements.txt
 ├── README.md
+├── FINAL_REPORT.md
+├── demo.py                         # Live demo runner
+├── get_eval_metrics.py             # Evaluation metrics script
 ├── data/
-│   └── synthetic_feedback.csv
+│   ├── storepulse.sqlite           # Auto-generated demo database
+│   └── synthetic_feedback.csv      # Raw synthetic dataset
 ├── src/
-│   ├── preprocessing.py
-│   ├── classifier.py
-│   ├── embeddings.py
-│   ├── policy_engine.py
-│   ├── routing.py
-│   ├── emerging_detector.py
-│   ├── weekly_report.py
-│   ├── duplicate_detector.py
-│   ├── evaluation.py
-│   ├── synthetic_data.py
-│   └── storage.py
+│   ├── preprocessing.py            # Text normalization, multilingual mappings
+│   ├── classifier.py               # FeedbackAnalyzer (rule/ML/hybrid modes)
+│   ├── embeddings.py               # Sentence-transformers semantic matching
+│   ├── policy_engine.py            # Safety escalation rules
+│   ├── routing.py                  # Department routing, taxonomy loading
+│   ├── emerging_detector.py        # Store-level incident early warning
+│   ├── weekly_report.py            # Regional action brief generation
+│   ├── duplicate_detector.py       # Cross-channel duplicate grouping
+│   ├── evaluation.py               # Classification & emerging metrics
+│   ├── holdout_evaluation.py       # Train/test split utilities
+│   ├── synthetic_data.py           # Dataset generation (11,794 rows)
+│   └── storage.py                  # SQLite persistence layer
 ├── config/
-│   └── issue_taxonomy.json
+│   └── issue_taxonomy.json         # Issue categories, keywords, departments
 ├── assets/
 │   ├── logo.png
 │   └── generate_logo.py
+├── scripts/
+│   └── download_models.py          # Offline model caching
+├── tools/
+│   └── metrics_report.py           # Metrics aggregation
 └── tests/
-    ├── test_policy_engine.py
-    ├── test_emerging_detector.py
-    ├── test_routing.py
-    ├── test_embeddings.py
-    ├── test_evaluation.py
-    └── smoke_all_pages.py
+    ├── test_policy_engine.py       # Safety escalation tests
+    ├── test_emerging_detector.py   # Alert detection tests
+    ├── test_routing.py             # Department routing tests
+    ├── test_regressions.py         # Bug fix regression suite (30 cases)
+    ├── test_embeddings.py          # Semantic matching tests
+    ├── test_evaluation.py          # Metrics calculation tests
+    ├── test_whole_word_matching.py # Keyword boundary tests
+    ├── test_classifier_training.py # ML training tests
+    ├── test_csv_upload.py          # Upload handling tests
+    ├── test_department_routing.py  # Department consistency tests
+    ├── test_alert_consistency.py   # Dashboard/alerts page sync tests
+    └── smoke_all_pages.py          # Full app integration test
 ```
 
 ---
@@ -237,9 +254,14 @@ pytest -q
 ## Dataset Format
 
 ### Synthetic Demonstration Data
-The app generates a labeled synthetic dataset with at least 2,000 records and marks it as:
+The app generates a labeled synthetic dataset with 11,794 feedback records spanning 12 weeks (Aug 4 - Oct 26, 2026). The dataset includes:
+- 40 retail stores across 4 regions (Mumbai, Bengaluru, Hyderabad, Chennai)
+- 4 channels (In-app Rating, Store Staff Note, Online Review, Call Center)
+- Multilingual feedback (English, Hinglish, romanized Telugu/Tamil/Marathi)
+- 8 embedded incident scenarios for early-warning system testing
+- Labeled ground truth for issue category, severity, actionability, and department
 
-**Synthetic Demonstration Data**
+The dataset is marked as **Synthetic Demonstration Data**.
 
 ### Required fields
 - `feedback_id`
@@ -329,9 +351,11 @@ The early-warning system calculates, for each store and issue category:
 - safe growth ratios
 
 ### Default alert conditions
-- `minimum_support = 2`
-- `growth_threshold = 2.5`
-- `spike_threshold = 3.0`
+- `minimum_support = 3` (raised from 2 to reduce alert fatigue on low-volume noise)
+- `growth_threshold = 2.5` (current rate must be 2.5× the historical baseline)
+- `spike_threshold = 3.0` (current rate must be 3 MAD above baseline for spike detection)
+- `lookback_weeks = 6` (compare current week against 6-week historical window)
+- `minimum_store_week_total = 5` (stores need at least 5 feedback items per week for reliable rate normalization)
 
 ### Core formula
 ```text
@@ -347,7 +371,7 @@ The detector compares the current week against the previous 4–6 weeks using a 
 - **Synthetic labels were updated on Oct 26, 2026** to align with the refined safety escalation policy: 301 Store Cleanliness rows changed from HIGH to MEDIUM. See `data/LABEL_CHANGES.md` for details.
 - **Improved escalation precision reflects this label correction**, not a model improvement. The policy now correctly distinguishes washroom hygiene (HIGH) from floor cleanliness (MEDIUM).
 - Rule-based classification is transparent but less powerful than a fully trained multilingual model.
-- Multilingual support covers common Hinglish and romanized Indian languages, but some transliterated words (e.g., Hindi "kharab", Tamil "alukku") are not yet in keyword lists.
+- Multilingual support covers common Hinglish and romanized Indian languages. Transliterated keywords added during testing include Hindi "kharab" (spoiled), Tamil "alukku" (dirty), and payment failure patterns.
 - Optional sentence-transformers support depends on local installation and model availability.
 - Some evaluation results are demo-only unless real ground-truth labels are uploaded.
 - Duplicate detection is heuristic and intended for operations review, not automatic merging.
@@ -389,8 +413,9 @@ StorePulse AI applies a **policy-first safety escalation** approach to ensure cr
 
 ### Always HIGH Severity:
 - **Food contamination** with pests (cockroaches, insects, mold, fungus)
+- **Spoiled or expired food** (spoiling, spoiled, rotten, stale food) - detected even in transliterated feedback ("kharab", "spoil autu", "spoil ayyindi")
 - **Washroom/toilet hygiene issues** (dirty, blocked, overflowing, smelly)
-- **Allergen label errors** (allergen not mentioned, incorrect labeling)
+- **Allergen label errors** (allergen not mentioned, incorrect labeling, ingredient not listed on label)
 - **Staff misconduct** (inappropriate behavior, harassment, threats)
 - **Unsafe products** (hazardous, dangerous, broken glass)
 
@@ -405,7 +430,34 @@ StorePulse AI applies a **policy-first safety escalation** approach to ensure cr
 - Positive context words (clean, fresh, thanks) prevent escalation
 - Neutral hygiene words (washroom, toilet) only escalate with negative qualifiers
 
-This split (Tasks 3-4, Oct 26 2026) reduced false HIGH escalations on routine cleaning issues while preserving 100% recall on true safety concerns.
+This split (Tasks 3-4, Oct 26 2026) reduced false HIGH escalations on routine cleaning issues while preserving detection of true safety concerns.
+
+---
+
+## Held-out Evaluation
+
+Performance on 11,794 labeled synthetic feedback records (80/20 train/test split, stratified by severity):
+
+### Rule-Based Classifier (no ML training)
+- **Issue Category** - Accuracy: 0.641, Macro F1: 0.662
+- **Severity** - Accuracy: 0.790, Macro F1: 0.772
+- **Actionability** - Accuracy: 0.840, Macro F1: 0.762
+
+### ML-Trained (TF-IDF + Logistic Regression)
+- **Issue Category** - Accuracy: 1.000, Macro F1: 1.000
+- **Severity** - Accuracy: 0.918, Macro F1: 0.918
+- **Actionability** - Accuracy: 0.924, Macro F1: 0.902
+
+### Hybrid (Policy-First Safety + ML Fallback)
+- **Issue Category** - Accuracy: 0.836, Macro F1: 0.776
+- **Severity** - Accuracy: 0.822, Macro F1: 0.815
+- **Actionability** - Accuracy: 0.851, Macro F1: 0.795
+
+**Notes:**
+- Rule-based classifier is transparent and requires no training data, but has lower accuracy on ambiguous cases
+- ML-trained achieves near-perfect issue categorization on this synthetic dataset (may not generalize to real-world noise)
+- Hybrid mode uses policy rules for safety escalation and ML for operational issues, balancing safety guarantees with learned patterns
+- All metrics measured on held-out test set (2,359 records) not seen during training
 
 ---
 

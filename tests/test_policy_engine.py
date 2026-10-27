@@ -29,10 +29,13 @@ def test_bare_ingredient_mention_is_not_an_allergen_escalation():
 
     The bare word "milk" must not trigger Allergen Risk, otherwise every
     spoiling-milk complaint escalates to Merchandising as a safety incident.
+    Note: Spoilage escalates to HIGH severity for food safety, but this is
+    for spoilage (Food Contamination), not allergens.
     """
     decision = evaluate_policy("The freezer is not working and milk packets are spoiling.")
     assert "Allergen Risk" not in decision.matched_rules
-    assert decision.severity != "HIGH"
+    assert "Food Contamination" in decision.matched_rules
+    assert decision.severity == "HIGH"
 
 
 def test_ingredient_with_declaration_context_still_escalates():

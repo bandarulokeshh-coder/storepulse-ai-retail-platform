@@ -39,7 +39,7 @@ NEGATIVE_QUALIFIERS = [
 # Safety patterns that always escalate (no negation checking for these)
 ALWAYS_ESCALATE_PATTERNS = {
     "Staff Misconduct": ["misconduct", "harassment", "inappropriate", "inappropriately", "abuse", "rude staff", "touching", "threatened"],
-    "Food Contamination": ["contamination", "contaminated", "mold", "fungus", "spoiled food", "food poisoning", "cockroach", "pest", "insect in food"],
+    "Food Contamination": ["contamination", "contaminated", "mold", "fungus", "spoiled food", "food poisoning", "cockroach", "pest", "insect in food", "spoiling", "spoiled"],
     "Washroom Hygiene": ["hygiene"],  # Only escalates when combined with washroom/toilet context
 }
 
@@ -48,7 +48,7 @@ ALWAYS_ESCALATE_PATTERNS = {
 # Only washroom/toilet dirtiness escalates to HIGH
 SAFETY_PATTERNS = {
     "Allergen Risk": ["allergen", "allergy", "contains nuts", "gluten", "cross contamination"],
-    "Food Contamination": ["spoil", "spoiled", "spoiled milk", "expired", "rotten", "stale"],
+    "Food Contamination": ["spoil", "expired", "rotten", "stale"],
     "Washroom Hygiene": ["smell bad", "smells bad", "filthy", "disgusting"],  # Severe washroom issues
     "Unsafe Product": ["unsafe", "dangerous", "hazard", "broken glass", "electrical shock", "slip hazard"],
 }
@@ -276,6 +276,24 @@ def _match_safety_patterns(text: str) -> list[str]:
                 if not has_positive:
                     matches.append("Allergen Risk")
 
+    # Check for ingredient/label complaints without "allergen" keyword
+    # "ingredients not listed" is still a labeling safety issue
+    if "Allergen Risk" not in matches:
+        ingredient_labeling_phrases = [
+            ("ingredient", "listed"),
+            ("ingredients", "listed"),
+            ("ingredient", "label"),
+            ("ingredients", "label"),
+            ("ingredient", "mentioned"),
+            ("ingredient", "declared"),
+            ("label", "allergen"),
+        ]
+        for word1, word2 in ingredient_labeling_phrases:
+            if contains_keyword(normalized, word1) and contains_keyword(normalized, word2):
+                if not has_positive:
+                    matches.append("Allergen Risk")
+                    break
+
     return list(set(matches))  # Remove duplicates
 
 
@@ -320,10 +338,22 @@ def determine_severity(
         department = get_department_for_issue(issue_category or "Customer Service Delay")
         return "LOW", [], False, department, "Positive or low-risk feedback detected."
 
+    # If no category provided, try to infer from high-priority keywords
+    if not issue_category:
+        # Check for payment failure keywords (HIGH priority, Digital)
+        payment_keywords = ["payment failed", "upi failed", "payment failure", "checkout failed", "transaction declined"]
+        if any(contains_keyword(normalized, kw) for kw in payment_keywords):
+            issue_category = "App Payment Failure"
+        # Check for payment/upi + failure indicators (not, failed, etc)
+        elif (contains_keyword(normalized, "payment") or contains_keyword(normalized, "upi")):
+            failure_indicators = ["not working", "not", "failed", "failure", "error", "issue"]
+            if any(contains_keyword(normalized, ind) for ind in failure_indicators):
+                issue_category = "App Payment Failure"
+
     severity = (baseline_severity or get_default_severity(issue_category or "")).upper()
     if severity not in {"LOW", "MEDIUM", "HIGH"}:
         severity = "MEDIUM"
-    department = get_department_for_issue(issue_category or "")
+    department = get_department_for_issue(issue_category or "", text)
     if severity == "HIGH" and not issue_category:
         reason = "High severity retained from operational policy."
     else:
