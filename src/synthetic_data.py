@@ -137,6 +137,60 @@ TEMPLATES: dict[str, dict[str, list[str]]] = {
         "Tamil Transliteration": ["Shelf la stock illa.", "Dairy section la stock shortage irukku."],
         "Marathi Transliteration": ["Shelf rikami aahe, stock nahi aahe.", "Dairy madhye stock shortage aahe."],
     },
+    "Staff Shift Coverage": {
+        "English": [
+            "Only two staff members are on the floor and billing is very slow.",
+            "The evening shift is short staffed and no one is at the counter.",
+            "Staff shortage during peak hours, the aisles are unattended.",
+        ],
+        "Hinglish": [
+            "Evening shift me staff nahi hai, counter khali hai.",
+            "Staff shortage hai, billing slow chal raha hai.",
+            "Shift cover nahi hui, floor pe koi nahi hai.",
+        ],
+        "Telugu Transliteration": [
+            "Evening shift ki staff ledu, counter khali undi.",
+            "Staff shortage valla billing slow ga undi.",
+            "Shift cover avvaledu, floor lo evaru leru.",
+        ],
+        "Tamil Transliteration": [
+            "Evening shift ku staff illa, counter kaali ah irukku.",
+            "Staff shortage naala billing slow ah irukku.",
+            "Shift cover aagala, floor la yaarum illa.",
+        ],
+        "Marathi Transliteration": [
+            "Evening shift la staff nahi, counter rikama aahe.",
+            "Staff shortage mule billing slow aahe.",
+            "Shift cover zali nahi, floor var kuni nahi.",
+        ],
+    },
+    "Logistics Stockout": {
+        "English": [
+            "The warehouse did not dispatch the truck, so the aisle is empty.",
+            "Logistics stockout again, the distribution centre sent nothing.",
+            "Supply truck never arrived, the shelves have been empty since morning.",
+        ],
+        "Hinglish": [
+            "Warehouse se truck dispatch nahi hua, shelf khali hai.",
+            "Logistics stockout hai, distribution centre se kuch nahi aaya.",
+            "Supply truck nahi aayi, subah se shelf khali hai.",
+        ],
+        "Telugu Transliteration": [
+            "Warehouse nunchi truck dispatch avvaledu, shelf khali undi.",
+            "Logistics stockout valla distribution centre nunchi stock raledu.",
+            "Supply truck raledu, morning nunchi shelf khali undi.",
+        ],
+        "Tamil Transliteration": [
+            "Warehouse la irundhu truck dispatch aagala, shelf kaali.",
+            "Logistics stockout naala distribution centre la irundhu stock varala.",
+            "Supply truck varala, kaalaila irundhu shelf kaali.",
+        ],
+        "Marathi Transliteration": [
+            "Warehouse madhun truck dispatch zala nahi, shelf rikama aahe.",
+            "Logistics stockout mule distribution centre madhun stock aala nahi.",
+            "Supply truck aali nahi, sakalapasun shelf rikama aahe.",
+        ],
+    },
     "Delivery Delay": {
         "English": ["Delivery arrived late and the fresh stock missed peak hours.", "Truck delay caused late replenishment."],
         "Hinglish": ["Delivery late aayi, replenish time miss ho gaya.", "Truck late tha aur stock time pe nahi aaya."],
@@ -378,6 +432,24 @@ INCIDENT_PROFILES = [
         "start_offset_weeks": 5,
         "weekly_counts": [1, 2, 2, 3, 3],
         "known_escalation_offset_weeks": 8,
+    },
+    {
+        "incident_tag": "staff_shift_coverage_st033",
+        "store_id": "ST-033",
+        "region": "Chennai",
+        "issue_category": "Staff Shift Coverage",
+        "start_offset_weeks": 7,
+        "weekly_counts": [1, 2, 3, 4, 5, 6, 7],
+        "known_escalation_offset_weeks": 10,
+    },
+    {
+        "incident_tag": "logistics_stockout_st035",
+        "store_id": "ST-035",
+        "region": "Mumbai",
+        "issue_category": "Logistics Stockout",
+        "start_offset_weeks": 3,
+        "weekly_counts": [1, 2, 3, 4, 5],
+        "known_escalation_offset_weeks": 6,
     },
 ]
 

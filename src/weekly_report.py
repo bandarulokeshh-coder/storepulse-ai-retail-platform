@@ -216,6 +216,22 @@ def _write_header(canvas, doc, report: WeeklyRegionalReport) -> None:
 
 
 
+def export_weekly_report_excel(report: WeeklyRegionalReport, output_path: str | Path) -> Path:
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    if report.top_issues.empty:
+        pd.DataFrame([report.overview]).to_excel(output_path, index=False)
+        return output_path
+    excel_frame = report.top_issues.copy()
+    excel_frame.insert(0, "Region", report.region)
+    excel_frame.insert(1, "Reporting Week", report.week_start)
+    with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+        excel_frame.to_excel(writer, index=False, sheet_name="Top Issues")
+        pd.DataFrame([report.overview]).to_excel(writer, index=False, sheet_name="Overview")
+    return output_path
+
+
+
 def export_weekly_report_pdf(report: WeeklyRegionalReport, output_path: str | Path) -> Path:
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)

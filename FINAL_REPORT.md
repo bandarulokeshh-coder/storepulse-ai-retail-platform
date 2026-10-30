@@ -96,7 +96,7 @@ All 8 failures are transliterated Indian language words not in keyword lists:
 
 ## 3. BEFORE/AFTER METRICS TABLE
 
-**Data Source**: Synthetic data (11,794 rows)  
+**Data Source**: Synthetic data (12,519 rows)  
 **Note**: All metrics marked as (synthetic) unless real ground-truth labels uploaded
 
 | Metric | Before (Oct 26 AM) | After (Oct 26 PM) | Data Type | Notes |
@@ -199,7 +199,7 @@ This function is decorated with `@st.cache_data`, ensuring deterministic results
 ### What Was NOT Completed:
 - ❌ Sensitivity view UI (alert threshold slider visualization)
 - ❌ Before/after alert count metrics (would need baseline data)
-- ❌ Seeded incidents recall measurement (requires full evaluation)
+- ✅ Seeded incidents recall measurement (6 incidents, see Evaluation page)
 - ❌ Median lead time measurement (requires full evaluation)
 
 **Assessment**: Task 7 core requirement (consistency) is complete and tested. UI enhancements are nice-to-have.

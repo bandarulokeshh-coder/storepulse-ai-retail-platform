@@ -24,6 +24,7 @@ from src.synthetic_data import CSV_PATH, generate_synthetic_dataset, incident_pr
 from src.weekly_report import (
     build_weekly_regional_report,
     export_weekly_report_csv,
+    export_weekly_report_excel,
     export_weekly_report_pdf,
     priority_formula_description,
 )
@@ -157,13 +158,22 @@ def get_analyzer(df_signature: str) -> FeedbackAnalyzer:
 
 
 @st.cache_data(show_spinner=False)
-def compute_emerging_alerts(df: pd.DataFrame, minimum_support: int, growth_threshold: float, spike_threshold: float) -> pd.DataFrame:
+def compute_emerging_alerts(
+    df: pd.DataFrame,
+    minimum_support: int,
+    growth_threshold: float,
+    spike_threshold: float,
+    lookback_weeks: int = 6,
+    minimum_store_week_total: int = 5,
+) -> pd.DataFrame:
     return summarize_alerts(
         detect_emerging_incidents(
             df,
             minimum_support=minimum_support,
             growth_threshold=growth_threshold,
             spike_threshold=spike_threshold,
+            lookback_weeks=lookback_weeks,
+            minimum_store_week_total=minimum_store_week_total,
         )
     )
 
@@ -181,6 +191,8 @@ def compute_evaluation_bundle(
     spike_threshold: float,
     ground_truth: dict[str, bool] | None = None,
     analyzer_signature: str = "",
+    lookback_weeks: int = 6,
+    minimum_store_week_total: int = 5,
 ) -> dict:
     # The analyzer has already been fitted by get_analyzer() for this signature;
     # do not refit here so uploaded labeled data is not overwritten.
@@ -191,6 +203,8 @@ def compute_evaluation_bundle(
         minimum_support=minimum_support,
         growth_threshold=growth_threshold,
         spike_threshold=spike_threshold,
+        lookback_weeks=lookback_weeks,
+        minimum_store_week_total=minimum_store_week_total,
     )
     return {
         "classification": evaluate_feedback_classification(df, analyzer, ground_truth=gt),
@@ -386,7 +400,15 @@ def make_issue_top5_table(df: pd.DataFrame) -> pd.DataFrame:
 
 
 
-def render_dashboard(df: pd.DataFrame, analyzer: FeedbackAnalyzer, minimum_support: int, growth_threshold: float, spike_threshold: float) -> None:
+def render_dashboard(
+    df: pd.DataFrame,
+    analyzer: FeedbackAnalyzer,
+    minimum_support: int,
+    growth_threshold: float,
+    spike_threshold: float,
+    lookback_weeks: int = 6,
+    minimum_store_week_total: int = 5,
+) -> None:
     st.markdown(
         f"""
         <div class="hero">
@@ -421,7 +443,7 @@ def render_dashboard(df: pd.DataFrame, analyzer: FeedbackAnalyzer, minimum_suppo
             date_range = st.date_input("Date Range", value=(min_date, max_date))
 
     filtered = filter_dataframe(filtered, region, store_id, tuple(date_range) if isinstance(date_range, (list, tuple)) else None, channel, severity, issue_category)
-    alerts = compute_emerging_alerts(filtered, minimum_support, growth_threshold, spike_threshold)
+    alerts = compute_emerging_alerts(filtered, minimum_support, growth_threshold, spike_threshold, lookback_weeks, minimum_store_week_total)
     duplicate_groups = compute_duplicate_groups(filtered)
 
     actionable_pct = round((filtered[filtered["actionable"].astype(bool)].shape[0] / max(len(filtered), 1)) * 100, 1)
@@ -521,10 +543,17 @@ def render_analyzer(analyzer: FeedbackAnalyzer) -> None:
 
 
 
-def render_alerts(df: pd.DataFrame, minimum_support: int, growth_threshold: float, spike_threshold: float) -> pd.DataFrame:
+def render_alerts(
+    df: pd.DataFrame,
+    minimum_support: int,
+    growth_threshold: float,
+    spike_threshold: float,
+    lookback_weeks: int = 6,
+    minimum_store_week_total: int = 5,
+) -> pd.DataFrame:
     st.subheader("Emerging Alerts")
     st.write("Early-warning system based on store-level normalized complaint rates, robust baselines, and seeded incident evaluation.")
-    alerts = compute_emerging_alerts(df, minimum_support, growth_threshold, spike_threshold)
+    alerts = compute_emerging_alerts(df, minimum_support, growth_threshold, spike_threshold, lookback_weeks, minimum_store_week_total)
     if alerts.empty:
         st.info("No alerts were triggered for the current dataset and thresholds.")
         return alerts
@@ -535,6 +564,25 @@ def render_alerts(df: pd.DataFrame, minimum_support: int, growth_threshold: floa
         alerts[["store_id", "region", "issue_category", "severity", "department", "current_count", "normalized_rate", "previous_baseline", "growth_indicator", "alert_date"]],
         width="stretch",
         hide_index=True,
+    )
+
+    export_buffer = BytesIO()
+    with pd.ExcelWriter(export_buffer, engine="openpyxl") as writer:
+        alerts.to_excel(writer, index=False, sheet_name="Alerts")
+    export_cols = st.columns(2)
+    export_cols[0].download_button(
+        "Download alerts (CSV)",
+        data=alerts.to_csv(index=False).encode("utf-8"),
+        file_name="storepulse_alerts.csv",
+        mime="text/csv",
+        width="stretch",
+    )
+    export_cols[1].download_button(
+        "Download alerts (Excel)",
+        data=export_buffer.getvalue(),
+        file_name="storepulse_alerts.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        width="stretch",
     )
 
     selected = st.selectbox(
@@ -598,10 +646,12 @@ def render_reports(df: pd.DataFrame, alerts: pd.DataFrame) -> None:
 
     pdf_path = Path("data") / f"storepulse_report_{region}_{pd.Timestamp(selected_week).strftime('%Y%m%d')}.pdf"
     csv_path = Path("data") / f"storepulse_report_{region}_{pd.Timestamp(selected_week).strftime('%Y%m%d')}.csv"
+    excel_path = Path("data") / f"storepulse_report_{region}_{pd.Timestamp(selected_week).strftime('%Y%m%d')}.xlsx"
     pdf_buffer = BytesIO()
     csv_buffer = BytesIO()
     export_weekly_report_pdf(report, pdf_path)
     export_weekly_report_csv(report, csv_path)
+    export_weekly_report_excel(report, excel_path)
     st.download_button(
         "Download PDF",
         data=pdf_path.read_bytes(),
@@ -613,6 +663,12 @@ def render_reports(df: pd.DataFrame, alerts: pd.DataFrame) -> None:
         data=csv_path.read_bytes(),
         file_name=csv_path.name,
         mime="text/csv",
+    )
+    st.download_button(
+        "Download Excel",
+        data=excel_path.read_bytes(),
+        file_name=excel_path.name,
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 
 
@@ -660,7 +716,14 @@ def render_store_analytics(df: pd.DataFrame) -> None:
 
 
 
-def render_evaluation(df: pd.DataFrame, minimum_support: int, growth_threshold: float, spike_threshold: float) -> None:
+def render_evaluation(
+    df: pd.DataFrame,
+    minimum_support: int,
+    growth_threshold: float,
+    spike_threshold: float,
+    lookback_weeks: int = 6,
+    minimum_store_week_total: int = 5,
+) -> None:
     st.subheader("Evaluation & Model Insights")
     st.write(
         "Metrics are demonstration-only when operating on synthetic records. "
@@ -675,6 +738,8 @@ def render_evaluation(df: pd.DataFrame, minimum_support: int, growth_threshold: 
             spike_threshold,
             ground_truth=ground_truth,
             analyzer_signature=st.session_state.get("analyzer_signature", ""),
+            lookback_weeks=lookback_weeks,
+            minimum_store_week_total=minimum_store_week_total,
         )
     classification = bundle["classification"]
     emerging = bundle["emerging"]
@@ -709,6 +774,29 @@ def render_evaluation(df: pd.DataFrame, minimum_support: int, growth_threshold: 
                 st.dataframe(entry["metrics"].confusion, width="stretch")
             else:
                 st.info(entry["message"])
+
+    st.markdown("### Alert Trend")
+    trend_alerts = compute_emerging_alerts(df, minimum_support, growth_threshold, spike_threshold, lookback_weeks, minimum_store_week_total)
+    if not trend_alerts.empty and "current_week" in trend_alerts.columns:
+        trend_frame = trend_alerts.groupby("current_week").size().reset_index(name="alert_count")
+        trend_frame = trend_frame.sort_values("current_week")
+        trend_fig = go.Figure(
+            data=[
+                go.Scatter(
+                    x=[pd.Timestamp(w) for w in trend_frame["current_week"]],
+                    y=trend_frame["alert_count"],
+                    mode="lines+markers",
+                )
+            ],
+            layout=go.Layout(
+                title="Emerging alerts over time",
+                xaxis_title="Week",
+                yaxis_title="Alert count",
+                template="plotly_white",
+            ),
+        )
+        st.plotly_chart(trend_fig, use_container_width=True)
+        st.caption("Alert count per reporting week under the active alert thresholds.")
 
     st.markdown("### Train/Test Split & Mode Comparison")
 
@@ -937,9 +1025,28 @@ def render_settings(df: pd.DataFrame) -> pd.DataFrame:
         store_col = st.selectbox("Store ID column", raw_df.columns, index=list(raw_df.columns).index(required["store_id"]) if required["store_id"] in raw_df.columns else 0)
         region_col = st.selectbox("Region column", raw_df.columns, index=list(raw_df.columns).index(required["region"]) if required["region"] in raw_df.columns else 0)
         channel_col = st.selectbox("Channel column", raw_df.columns, index=list(raw_df.columns).index(required["channel"]) if required["channel"] in raw_df.columns else 0)
+
+        normalized_upload = raw_df[text_col].fillna("").astype(str).map(compact_text).str.strip().str.lower()
+        total_upload = int(len(raw_df))
+        unique_upload = int(normalized_upload[normalized_upload.str.len() > 0].nunique())
+        duplicate_share = 0.0 if total_upload == 0 else (1 - unique_upload / total_upload) * 100
+        quality_cols = st.columns(3)
+        quality_cols[0].metric("Rows", f"{total_upload:,}")
+        quality_cols[1].metric("Unique texts", f"{unique_upload:,}")
+        quality_cols[2].metric("Duplicate share", f"{duplicate_share:.0f}%")
+        drop_duplicates = st.checkbox("Drop duplicate feedback texts before loading", value=True)
+
         if st.button("Load Uploaded Dataset"):
+            load_frame = raw_df
+            if drop_duplicates:
+                non_empty = normalized_upload.str.len() > 0
+                if non_empty.any():
+                    load_frame = raw_df.loc[~normalized_upload[non_empty].duplicated()]
+            removed = total_upload - len(load_frame)
+            if removed:
+                st.caption(f"Loaded {len(load_frame):,} rows after removing {removed:,} duplicates.")
             cleaned = standardize_feedback_frame(
-                raw_df,
+                load_frame,
                 text_column=text_col,
                 date_column=date_col,
                 store_column=store_col,
@@ -1027,10 +1134,34 @@ def app() -> None:
     st.session_state["analyzer_signature"] = analyzer_signature
 
     st.sidebar.markdown("---")
-    st.sidebar.subheader("Alert Thresholds")
-    minimum_support = int(st.sidebar.slider("Minimum support", 1, 8, 2, help="Minimum complaints needed before an alert can trigger."))
-    growth_threshold = float(st.sidebar.slider("Growth threshold", 1.0, 5.0, 2.5, 0.1, help="Complaint rate growth versus historical baseline."))
-    spike_threshold = float(st.sidebar.slider("Spike threshold", 1.0, 6.0, 3.0, 0.1, help="Robust spike score based on median and MAD."))
+    st.sidebar.subheader("Alert Sensitivity")
+    preset = st.sidebar.radio(
+        "Preset",
+        ["Balanced", "Sensitive", "Conservative", "Custom"],
+        help="Balanced is tuned for the demo dataset. Sensitive catches earlier with more noise; Conservative only fires on sustained spikes.",
+    )
+    presets = {
+        "Sensitive": dict(minimum_support=2, growth_threshold=2.0, spike_threshold=2.5, lookback_weeks=6, minimum_store_week_total=5),
+        "Balanced": dict(minimum_support=3, growth_threshold=2.5, spike_threshold=3.0, lookback_weeks=6, minimum_store_week_total=5),
+        "Conservative": dict(minimum_support=5, growth_threshold=3.5, spike_threshold=4.0, lookback_weeks=8, minimum_store_week_total=15),
+    }
+    if preset == "Custom":
+        minimum_support = int(st.sidebar.slider("Minimum support", 1, 8, 3, help="Minimum complaints needed before an alert can trigger."))
+        growth_threshold = float(st.sidebar.slider("Growth threshold", 1.0, 5.0, 2.5, 0.1, help="Complaint rate growth versus historical baseline."))
+        spike_threshold = float(st.sidebar.slider("Spike threshold", 1.0, 6.0, 3.0, 0.1, help="Robust spike score based on median and MAD."))
+        lookback_weeks = int(st.sidebar.slider("Lookback weeks", 2, 12, 6, help="Historical window used to compute robust baselines."))
+        minimum_store_week_total = int(st.sidebar.slider("Minimum store-week total", 1, 40, 5, help="Minimum feedback items per store-week for reliable rate normalization. Store-weeks below this are ignored."))
+    else:
+        chosen = presets[preset]
+        minimum_support = chosen["minimum_support"]
+        growth_threshold = chosen["growth_threshold"]
+        spike_threshold = chosen["spike_threshold"]
+        lookback_weeks = chosen["lookback_weeks"]
+        minimum_store_week_total = chosen["minimum_store_week_total"]
+        st.sidebar.caption(
+            f"{minimum_support}+ complaints · {growth_threshold}x growth · {spike_threshold} MAD spike · "
+            f"{lookback_weeks}-week baseline · {minimum_store_week_total}+ per store-week"
+        )
     st.sidebar.caption("Policy-first safety categories always escalate to HIGH severity.")
 
     st.sidebar.markdown("---")
@@ -1038,18 +1169,18 @@ def app() -> None:
     st.sidebar.caption("Demo mode uses actual synthetic records with seeded incidents.")
 
     if page == "Dashboard":
-        render_dashboard(df, analyzer, minimum_support, growth_threshold, spike_threshold)
+        render_dashboard(df, analyzer, minimum_support, growth_threshold, spike_threshold, lookback_weeks, minimum_store_week_total)
     elif page == "AI Feedback Analyzer":
         render_analyzer(analyzer)
     elif page == "Emerging Alerts":
-        render_alerts(df, minimum_support, growth_threshold, spike_threshold)
+        render_alerts(df, minimum_support, growth_threshold, spike_threshold, lookback_weeks, minimum_store_week_total)
     elif page == "Weekly Regional Reports":
-        alerts = compute_emerging_alerts(df, minimum_support, growth_threshold, spike_threshold)
+        alerts = compute_emerging_alerts(df, minimum_support, growth_threshold, spike_threshold, lookback_weeks, minimum_store_week_total)
         render_reports(df, alerts)
     elif page == "Store Analytics":
         render_store_analytics(df)
     elif page == "Evaluation & Model Insights":
-        render_evaluation(df, minimum_support, growth_threshold, spike_threshold)
+        render_evaluation(df, minimum_support, growth_threshold, spike_threshold, lookback_weeks, minimum_store_week_total)
     else:
         render_settings(df)
 

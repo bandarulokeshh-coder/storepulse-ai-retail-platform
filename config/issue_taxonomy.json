@@ -225,6 +225,20 @@
       "severity_default": "LOW",
       "keywords": ["no response", "waiting for help", "staff unavailable", "service delay"],
       "suggested_action": "Improve floor support and customer assistance staffing."
+    },
+    {
+      "issue_category": "Staff Shift Coverage",
+      "department": "HR",
+      "severity_default": "MEDIUM",
+      "keywords": ["staff shortage", "short staffed", "understaffed", "shift not covered", "no staff at counter", "shift cover"],
+      "suggested_action": "Rebalance shift rosters and confirm minimum staffing levels."
+    },
+    {
+      "issue_category": "Logistics Stockout",
+      "department": "Supply Chain",
+      "severity_default": "MEDIUM",
+      "keywords": ["logistics stockout", "warehouse stockout", "distribution stockout", "truck not dispatched", "supply truck not arrived"],
+      "suggested_action": "Escalate to the distribution centre and re-plan replenishment."
     }
   ],
   "default_department": "Store Operations"
